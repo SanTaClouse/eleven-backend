@@ -26,28 +26,35 @@ export class ClientsService {
   async findAllWithStats(month?: number, year?: number): Promise<any[]> {
     const query = this.clientRepository
       .createQueryBuilder('client')
-      .leftJoinAndSelect('client.buildings', 'building')
+      .leftJoin('client.buildings', 'building')
       .leftJoin('building.workOrders', 'workOrder')
-      .select([
-        'client.id',
-        'client.name',
-        'client.phone',
-        'client.email',
-        'client.address',
-        'client.taxId',
-        'client.isActive',
-        'client.createdAt',
-        'COUNT(DISTINCT building.id) as buildingsCount',
-      ])
-      .groupBy('client.id');
+      .select('client.id', 'id')
+      .addSelect('client.name', 'name')
+      .addSelect('client.phone', 'phone')
+      .addSelect('client.email', 'email')
+      .addSelect('client.address', 'address')
+      .addSelect('client.taxId', 'taxId')
+      .addSelect('client.isActive', 'isActive')
+      .addSelect('client.createdAt', 'createdAt')
+      .addSelect('COUNT(DISTINCT building.id)', 'buildingsCount')
+      .groupBy('client.id')
+      .addGroupBy('client.name')
+      .addGroupBy('client.phone')
+      .addGroupBy('client.email')
+      .addGroupBy('client.address')
+      .addGroupBy('client.taxId')
+      .addGroupBy('client.isActive')
+      .addGroupBy('client.createdAt');
 
     if (month && year) {
       query
         .addSelect(
-          'SUM(CASE WHEN workOrder.month = :month AND workOrder.year = :year THEN workOrder.priceSnapshot ELSE 0 END)',
+          'COALESCE(SUM(CASE WHEN workOrder.month = :month AND workOrder.year = :year THEN workOrder.priceSnapshot ELSE 0 END), 0)',
           'monthlyRevenue',
         )
         .setParameters({ month, year });
+    } else {
+      query.addSelect('0', 'monthlyRevenue');
     }
 
     return await query.getRawMany();
