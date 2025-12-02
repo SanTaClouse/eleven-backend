@@ -6,35 +6,82 @@ import {
   Patch,
   Param,
   Delete,
+  HttpStatus,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+} from '@nestjs/swagger';
 import { BuildingsService } from './buildings.service';
 import { CreateBuildingDto, UpdateBuildingDto } from './dto';
 
+@ApiTags('buildings')
 @Controller('buildings')
 export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create a new building' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Building successfully created',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input data',
+  })
   create(@Body() createBuildingDto: CreateBuildingDto) {
     return this.buildingsService.create(createBuildingDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all buildings' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of buildings retrieved successfully',
+  })
   findAll() {
     return this.buildingsService.findAll();
   }
 
   @Get('active')
+  @ApiOperation({ summary: 'Get all active buildings' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of active buildings retrieved successfully',
+  })
   findAllActive() {
     return this.buildingsService.findAllActive();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a building by ID' })
+  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Building found',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Building not found',
+  })
   findOne(@Param('id') id: string) {
     return this.buildingsService.findOne(id);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a building' })
+  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Building successfully updated',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Building not found',
+  })
   update(
     @Param('id') id: string,
     @Body() updateBuildingDto: UpdateBuildingDto,
@@ -43,6 +90,16 @@ export class BuildingsController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a building' })
+  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Building successfully deleted',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Building not found',
+  })
   remove(@Param('id') id: string) {
     return this.buildingsService.remove(id);
   }

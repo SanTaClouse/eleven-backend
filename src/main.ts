@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -23,9 +24,28 @@ async function bootstrap() {
   // API prefix
   app.setGlobalPrefix('api');
 
+  // Swagger Documentation
+  const config = new DocumentBuilder()
+    .setTitle('ELEVEN API')
+    .setDescription('Elevator Maintenance SaaS - API Documentation')
+    .setVersion('1.0')
+    .addTag('clients', 'Client management endpoints')
+    .addTag('buildings', 'Building inventory endpoints')
+    .addTag('work-orders', 'Work orders and operations endpoints')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document, {
+    customSiteTitle: 'ELEVEN API Docs',
+    customfavIcon: 'https://nestjs.com/img/logo-small.svg',
+    customCss: '.swagger-ui .topbar { display: none }',
+  });
+
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`🚀 Server running on http://localhost:${port}/api`);
+  console.log(`📚 Swagger docs available at http://localhost:${port}/api/docs`);
 }
 
 bootstrap();
