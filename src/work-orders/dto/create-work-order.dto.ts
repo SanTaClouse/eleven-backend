@@ -1,4 +1,5 @@
-import { IsNumber, IsOptional, IsString, IsUUID, Min, Max } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUUID, Min, Max, IsEnum } from 'class-validator';
+import { WorkOrderType } from '../../entities/work-order.entity';
 
 export class CreateWorkOrderDto {
   @IsUUID()
@@ -12,6 +13,10 @@ export class CreateWorkOrderDto {
   @IsNumber()
   @Min(2020)
   year: number;
+
+  @IsEnum(WorkOrderType)
+  @IsOptional()
+  type?: WorkOrderType;
 
   @IsNumber()
   @Min(0)

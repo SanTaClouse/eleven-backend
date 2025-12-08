@@ -17,9 +17,16 @@ export enum WorkOrderStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum WorkOrderType {
+  MANTENIMIENTO = 'mantenimiento',
+  INSTALACION = 'instalacion',
+  REPARACION = 'reparacion',
+  MODERNIZACION = 'modernizacion',
+}
+
 @Entity('work_orders')
 @Index(['month', 'year']) // Optimiza queries por período
-@Index(['buildingId', 'month', 'year'], { unique: true }) // Evita duplicados
+@Index(['buildingId', 'month', 'year', 'type'], { unique: true }) // Evita duplicados del mismo tipo
 export class WorkOrder {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -39,6 +46,13 @@ export class WorkOrder {
     default: WorkOrderStatus.PENDING,
   })
   statusOperativo: WorkOrderStatus;
+
+  @Column({
+    type: 'enum',
+    enum: WorkOrderType,
+    default: WorkOrderType.MANTENIMIENTO,
+  })
+  type: WorkOrderType;
 
   @Column({ type: 'boolean', default: false })
   isFacturado: boolean;

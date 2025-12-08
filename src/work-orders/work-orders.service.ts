@@ -2,15 +2,19 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { WorkOrder, WorkOrderStatus } from '../entities/work-order.entity';
+import { WorkOrder, WorkOrderStatus, WorkOrderType } from '../entities/work-order.entity';
 import { BuildingsService } from '../buildings/buildings.service';
+import { ClientsService } from '../clients/clients.service';
 import {
   CreateWorkOrderDto,
   UpdateWorkOrderDto,
   GenerateMonthlyOrdersDto,
+  BulkUpdateWorkOrdersDto,
 } from './dto';
 
 @Injectable()
@@ -19,21 +23,24 @@ export class WorkOrdersService {
     @InjectRepository(WorkOrder)
     private readonly workOrderRepository: Repository<WorkOrder>,
     private readonly buildingsService: BuildingsService,
+    @Inject(forwardRef(() => ClientsService))
+    private readonly clientsService: ClientsService,
   ) {}
 
   async create(createWorkOrderDto: CreateWorkOrderDto): Promise<WorkOrder> {
-    // Check for existing work order
+    // Check for existing work order with same type
     const existing = await this.workOrderRepository.findOne({
       where: {
         buildingId: createWorkOrderDto.buildingId,
         month: createWorkOrderDto.month,
         year: createWorkOrderDto.year,
+        type: createWorkOrderDto.type || WorkOrderType.MANTENIMIENTO,
       },
     });
 
     if (existing) {
       throw new ConflictException(
-        `Work order for this building already exists for ${createWorkOrderDto.month}/${createWorkOrderDto.year}`,
+        `Work order of this type for this building already exists for ${createWorkOrderDto.month}/${createWorkOrderDto.year}`,
       );
     }
 
@@ -115,12 +122,13 @@ export class WorkOrdersService {
 
     for (const building of buildings) {
       try {
-        // Check if work order already exists
+        // Check if work order already exists for MANTENIMIENTO type
         const existing = await this.workOrderRepository.findOne({
           where: {
             buildingId: building.id,
             month,
             year,
+            type: WorkOrderType.MANTENIMIENTO,
           },
         });
 
@@ -129,11 +137,12 @@ export class WorkOrdersService {
           continue;
         }
 
-        // Create work order with current building price
+        // Create work order with current building price and type MANTENIMIENTO
         const workOrder = this.workOrderRepository.create({
           buildingId: building.id,
           month,
           year,
+          type: WorkOrderType.MANTENIMIENTO,
           priceSnapshot: building.price,
           statusOperativo: WorkOrderStatus.PENDING,
           isFacturado: false,
@@ -148,6 +157,9 @@ export class WorkOrdersService {
         );
       }
     }
+
+    // Update client rankings after generating monthly orders
+    await this.clientsService.updateClientRankings();
 
     return results;
   }
@@ -194,5 +206,56 @@ export class WorkOrdersService {
         collectionRate: invoicedRevenue > 0 ? (paidRevenue / invoicedRevenue) * 100 : 0,
       },
     };
+  }
+
+  /**
+   * Bulk update work orders by client, type, month and year
+   * Updates isFacturado and/or isCobrado for all matching work orders in the specified period
+   */
+  async bulkUpdate(dto: BulkUpdateWorkOrdersDto): Promise<{ updated: number }> {
+    const { clientId, type, month, year, isFacturado, isCobrado } = dto;
+
+    // Find all work orders for the specified client, type, month and year that need updating
+    const query = this.workOrderRepository
+      .createQueryBuilder('workOrder')
+      .leftJoin('workOrder.building', 'building')
+      .where('building.clientId = :clientId', { clientId })
+      .andWhere('workOrder.type = :type', { type })
+      .andWhere('workOrder.month = :month', { month })
+      .andWhere('workOrder.year = :year', { year });
+
+    // Only update orders that actually need to change
+    if (isFacturado !== undefined) {
+      query.andWhere('workOrder.isFacturado != :isFacturado', { isFacturado });
+    }
+    if (isCobrado !== undefined) {
+      query.andWhere('workOrder.isCobrado != :isCobrado', { isCobrado });
+    }
+
+    const workOrders = await query.getMany();
+    const now = new Date();
+
+    // Update each order
+    for (const workOrder of workOrders) {
+      const updateData: any = {};
+
+      if (isFacturado !== undefined) {
+        updateData.isFacturado = isFacturado;
+        if (isFacturado && !workOrder.invoicedAt) {
+          updateData.invoicedAt = now;
+        }
+      }
+
+      if (isCobrado !== undefined) {
+        updateData.isCobrado = isCobrado;
+        if (isCobrado && !workOrder.paidAt) {
+          updateData.paidAt = now;
+        }
+      }
+
+      await this.workOrderRepository.update(workOrder.id, updateData);
+    }
+
+    return { updated: workOrders.length };
   }
 }
