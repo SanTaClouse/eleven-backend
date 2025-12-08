@@ -107,4 +107,15 @@ export class ClientsController {
   remove(@Param('id') id: string) {
     return this.clientsService.remove(id);
   }
+
+  @Post('update-rankings')
+  @ApiOperation({ summary: 'Update client rankings based on revenue' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Client rankings updated successfully',
+  })
+  async updateRankings() {
+    await this.clientsService.updateClientRankings();
+    return { message: 'Client rankings updated successfully' };
+  }
 }

@@ -31,6 +31,12 @@ export class Client {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
+  @Column({ type: 'int', nullable: true })
+  clientRank: number;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  monthlyRevenue: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

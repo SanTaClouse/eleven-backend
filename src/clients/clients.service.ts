@@ -9,17 +9,27 @@ export class ClientsService {
   constructor(
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
-  ) {}
+  ) { }
 
   async create(createClientDto: CreateClientDto): Promise<Client> {
     const client = this.clientRepository.create(createClientDto);
-    return await this.clientRepository.save(client);
+    console.log('Debería guardarse el cliente', client);
+
+    const savedClient = await this.clientRepository.save(client);
+
+    // Update rankings after creating a client
+    await this.updateClientRankings();
+
+    return savedClient;
   }
 
   async findAll(): Promise<Client[]> {
     return await this.clientRepository.find({
       relations: ['buildings'],
-      order: { createdAt: 'DESC' },
+      order: {
+        clientRank: 'ASC',
+        createdAt: 'DESC'
+      },
     });
   }
 
@@ -36,6 +46,7 @@ export class ClientsService {
       .addSelect('client.taxId', 'taxId')
       .addSelect('client.isActive', 'isActive')
       .addSelect('client.createdAt', 'createdAt')
+      .addSelect('client.clientRank', 'clientRank')
       .addSelect('COUNT(DISTINCT building.id)', 'buildingsCount')
       .groupBy('client.id')
       .addGroupBy('client.name')
@@ -44,7 +55,8 @@ export class ClientsService {
       .addGroupBy('client.address')
       .addGroupBy('client.taxId')
       .addGroupBy('client.isActive')
-      .addGroupBy('client.createdAt');
+      .addGroupBy('client.createdAt')
+      .addGroupBy('client.clientRank');
 
     if (month && year) {
       query
@@ -82,5 +94,31 @@ export class ClientsService {
   async remove(id: string): Promise<void> {
     const client = await this.findOne(id);
     await this.clientRepository.remove(client);
+  }
+
+  /**
+   * Calcula y actualiza el ranking de clientes basado en su facturación mensual promedio
+   * El cliente con mayor facturación promedio obtiene el ranking #1
+   */
+  async updateClientRankings(): Promise<void> {
+    // Obtener todos los clientes con su facturación total
+    const clients = await this.clientRepository
+      .createQueryBuilder('client')
+      .leftJoin('client.buildings', 'building')
+      .leftJoin('building.workOrders', 'workOrder')
+      .select('client.id', 'id')
+      .addSelect('COALESCE(AVG(building.price), 0)', 'avgRevenue')
+      .groupBy('client.id')
+      .orderBy('"avgRevenue"', 'DESC')
+      .getRawMany();
+
+    // Asignar rankings (1 = mayor facturación)
+    for (let i = 0; i < clients.length; i++) {
+      const client = clients[i];
+      await this.clientRepository.update(client.id, {
+        clientRank: i + 1,
+        monthlyRevenue: parseFloat(client.avgRevenue || 0),
+      });
+    }
   }
 }
