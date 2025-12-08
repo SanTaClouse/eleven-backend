@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsEmail, IsOptional, MaxLength, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateClientDto {
@@ -48,4 +48,13 @@ export class CreateClientDto {
   @IsString()
   @MaxLength(50)
   taxId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Whether the client is active',
+    example: true,
+    default: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

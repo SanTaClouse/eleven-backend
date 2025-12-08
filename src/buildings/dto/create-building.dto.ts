@@ -6,6 +6,7 @@ import {
   IsUUID,
   MaxLength,
   Min,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -75,6 +76,15 @@ export class CreateBuildingDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional({
+    description: 'Whether the client is active',
+    example: true,
+    default: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 
   @ApiProperty({
     description: 'Client UUID that owns this building',
