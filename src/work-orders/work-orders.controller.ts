@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,7 @@ import {
   CreateWorkOrderDto,
   UpdateWorkOrderDto,
   GenerateMonthlyOrdersDto,
+  BulkUpdateWorkOrdersDto,
 } from './dto';
 
 @ApiTags('work-orders')
@@ -71,6 +73,29 @@ export class WorkOrdersController {
     return this.workOrdersService.generateMonthlyOrders(dto);
   }
 
+  @Post('bulk-update')
+  @ApiOperation({
+    summary: 'Bulk update work orders by client and type',
+    description:
+      'Updates isFacturado and/or isCobrado for all work orders matching the specified client and type',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Bulk update summary',
+    schema: {
+      example: {
+        updated: 12,
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input data',
+  })
+  bulkUpdate(@Body() dto: BulkUpdateWorkOrdersDto) {
+    return this.workOrdersService.bulkUpdate(dto);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all work orders' })
   @ApiQuery({
@@ -90,6 +115,22 @@ export class WorkOrdersController {
     description: 'List of work orders retrieved successfully',
   })
   findAll(@Query('month') month?: number, @Query('year') year?: number) {
+    // Validate month
+    if (month !== undefined) {
+      const monthNum = Number(month);
+      if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        throw new BadRequestException('Month must be between 1 and 12');
+      }
+    }
+
+    // Validate year
+    if (year !== undefined) {
+      const yearNum = Number(year);
+      if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
+        throw new BadRequestException('Year must be between 2020 and 2100');
+      }
+    }
+
     return this.workOrdersService.findAll(
       month ? Number(month) : undefined,
       year ? Number(year) : undefined,
@@ -139,7 +180,19 @@ export class WorkOrdersController {
     },
   })
   getDashboardKPIs(@Query('month') month: number, @Query('year') year: number) {
-    return this.workOrdersService.getDashboardKPIs(Number(month), Number(year));
+    // Validate month
+    const monthNum = Number(month);
+    if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+      throw new BadRequestException('Month must be between 1 and 12');
+    }
+
+    // Validate year
+    const yearNum = Number(year);
+    if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
+      throw new BadRequestException('Year must be between 2020 and 2100');
+    }
+
+    return this.workOrdersService.getDashboardKPIs(monthNum, yearNum);
   }
 
   @Get(':id')
