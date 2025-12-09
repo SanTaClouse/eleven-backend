@@ -29,12 +29,20 @@ export class UpdateWorkOrderDto {
   isCobrado?: boolean;
 
   @ApiPropertyOptional({
-    description: 'URL to the uploaded invoice (S3/Cloudinary)',
-    example: 'https://storage.example.com/invoices/2024-12-001.pdf',
+    description: 'URL to the uploaded invoice in Firebase Storage',
+    example: 'https://firebasestorage.googleapis.com/v0/b/eleven-db-facturas.appspot.com/...',
   })
   @IsOptional()
   @IsString()
   invoiceUrl?: string;
+
+  @ApiPropertyOptional({
+    description: 'File name of the invoice in Firebase Storage',
+    example: 'invoices/cliente-edificio-2024-12.pdf',
+  })
+  @IsOptional()
+  @IsString()
+  invoiceFileName?: string;
 
   @ApiPropertyOptional({
     description: 'Additional observations or notes',

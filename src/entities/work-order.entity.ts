@@ -61,7 +61,13 @@ export class WorkOrder {
   isCobrado: boolean;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  invoiceUrl: string; // URL de la factura cargada (S3/Cloudinary)
+  invoiceUrl: string; // URL de la factura en Firebase Storage
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  invoiceFileName: string; // Nombre del archivo PDF en Firebase Storage
+
+  @Column({ type: 'timestamp', nullable: true })
+  invoiceUploadedAt: Date; // Fecha en que se cargó la factura
 
   @Column({ type: 'text', nullable: true })
   observations: string;

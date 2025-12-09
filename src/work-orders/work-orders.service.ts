@@ -95,6 +95,17 @@ export class WorkOrdersService {
       workOrder.paidAt = new Date();
     }
 
+    // Auto-set timestamp when invoice is uploaded
+    if (updateWorkOrderDto.invoiceUrl && !workOrder.invoiceUploadedAt) {
+      workOrder.invoiceUploadedAt = new Date();
+    }
+
+    // Clear timestamp if invoice is removed
+    if (updateWorkOrderDto.invoiceUrl === null && workOrder.invoiceUploadedAt) {
+      workOrder.invoiceUploadedAt = null;
+      workOrder.invoiceFileName = null;
+    }
+
     Object.assign(workOrder, updateWorkOrderDto);
     return await this.workOrderRepository.save(workOrder);
   }
