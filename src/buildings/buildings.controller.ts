@@ -19,11 +19,10 @@ import {
 import { BuildingsService } from './buildings.service';
 import { CreateBuildingDto, UpdateBuildingDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
 
 @ApiTags('buildings')
 @Controller('buildings')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}

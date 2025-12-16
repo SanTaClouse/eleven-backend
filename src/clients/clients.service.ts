@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Client } from '../entities/client.entity';
 import { CreateClientDto, UpdateClientDto } from './dto';
-import { UserRole } from '../entities/user.entity';
 
 @Injectable()
 export class ClientsService {
@@ -11,15 +10,6 @@ export class ClientsService {
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
   ) { }
-
-  private filterFinancialData(client: any, userRole: UserRole) {
-    if (userRole === UserRole.SUPPORT) {
-      // Ocultar datos financieros para SUPPORT
-      const { monthlyRevenue, clientRank, ...rest } = client;
-      return rest;
-    }
-    return client;
-  }
 
   async create(createClientDto: CreateClientDto): Promise<Client> {
     const client = this.clientRepository.create(createClientDto);
@@ -31,20 +21,17 @@ export class ClientsService {
     return savedClient;
   }
 
-  async findAll(user: any): Promise<Client[]> {
-    const clients = await this.clientRepository.find({
+  async findAll(): Promise<Client[]> {
+    return await this.clientRepository.find({
       relations: ['buildings'],
       order: {
         clientRank: 'ASC',
         createdAt: 'DESC'
       },
     });
-
-    // Filtrar datos financieros si es SUPPORT
-    return clients.map(client => this.filterFinancialData(client, user.role));
   }
 
-  async findAllWithStats(user: any, month?: number, year?: number): Promise<any[]> {
+  async findAllWithStats(month?: number, year?: number): Promise<any[]> {
     const query = this.clientRepository
       .createQueryBuilder('client')
       .leftJoin('client.buildings', 'building')
@@ -80,13 +67,10 @@ export class ClientsService {
       query.addSelect('0', 'monthlyRevenue');
     }
 
-    const results = await query.getRawMany();
-
-    // Filtrar datos financieros si es SUPPORT
-    return results.map(result => this.filterFinancialData(result, user.role));
+    return await query.getRawMany();
   }
 
-  async findOne(id: string, user: any): Promise<Client> {
+  async findOne(id: string): Promise<Client> {
     const client = await this.clientRepository.findOne({
       where: { id },
       relations: ['buildings'],
@@ -96,7 +80,7 @@ export class ClientsService {
       throw new NotFoundException(`Client with ID ${id} not found`);
     }
 
-    return this.filterFinancialData(client, user.role);
+    return client;
   }
 
   async update(id: string, updateClientDto: UpdateClientDto): Promise<Client> {

@@ -27,11 +27,10 @@ import {
   BulkUpdateWorkOrdersDto,
 } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
 
 @ApiTags('work-orders')
 @Controller('work-orders')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class WorkOrdersController {
   constructor(private readonly workOrdersService: WorkOrdersService) {}

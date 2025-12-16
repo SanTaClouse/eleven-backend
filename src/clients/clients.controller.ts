@@ -21,12 +21,10 @@ import {
 import { ClientsService } from './clients.service';
 import { CreateClientDto, UpdateClientDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { GetUser } from '../auth/decorators/get-user.decorator';
 
 @ApiTags('clients')
 @Controller('clients')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
@@ -64,14 +62,13 @@ export class ClientsController {
     description: 'List of clients retrieved successfully',
   })
   findAll(
-    @GetUser() user: any,
     @Query('month') month?: number,
     @Query('year') year?: number,
   ) {
     if (month && year) {
-      return this.clientsService.findAllWithStats(user, month, year);
+      return this.clientsService.findAllWithStats(month, year);
     }
-    return this.clientsService.findAll(user);
+    return this.clientsService.findAll();
   }
 
   @Get(':id')
@@ -85,8 +82,8 @@ export class ClientsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Client not found',
   })
-  findOne(@GetUser() user: any, @Param('id') id: string) {
-    return this.clientsService.findOne(id, user);
+  findOne(@Param('id') id: string) {
+    return this.clientsService.findOne(id);
   }
 
   @Patch(':id')

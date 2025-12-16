@@ -29,10 +29,10 @@ export async function seedUsers(dataSource: DataSource) {
     },
     {
       email: 'soporte@eleven.com',
-      password: await hash('SupportSecure123!', 10),
-      name: 'Soporte Técnico ELEVEN',
-      role: UserRole.SUPPORT,
-      isActive: true, 
+      password: await hash('SupportPass123!', 10),
+      name: 'Soporte Técnico',
+      role: UserRole.ADMIN,
+      isActive: false, // Desactivado por defecto, el cliente activa cuando necesite soporte
     },
   ];
 
@@ -40,5 +40,5 @@ export async function seedUsers(dataSource: DataSource) {
   console.log('✅ 3 usuarios creados:');
   console.log('   📧 martin@eleven.com (ADMIN) - Password: AdminPass123!');
   console.log('   📧 socio2@eleven.com (ADMIN) - Password: AdminPass123!');
-  console.log('   📧 soporte@eleven.com (SUPPORT) - Password: SupportSecure123!');
+  console.log('   📧 soporte@eleven.com (ADMIN, inactivo) - Password: SupportPass123!');
 }
