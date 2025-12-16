@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Client } from '../entities/client.entity';
 import { CreateClientDto, UpdateClientDto } from './dto';
+import { UserRole } from '../entities/user.entity';
 
 @Injectable()
 export class ClientsService {
@@ -11,10 +12,17 @@ export class ClientsService {
     private readonly clientRepository: Repository<Client>,
   ) { }
 
+  private filterFinancialData(client: any, userRole: UserRole) {
+    if (userRole === UserRole.SUPPORT) {
+      // Ocultar datos financieros para SUPPORT
+      const { monthlyRevenue, clientRank, ...rest } = client;
+      return rest;
+    }
+    return client;
+  }
+
   async create(createClientDto: CreateClientDto): Promise<Client> {
     const client = this.clientRepository.create(createClientDto);
-    console.log('Debería guardarse el cliente', client);
-
     const savedClient = await this.clientRepository.save(client);
 
     // Update rankings after creating a client
@@ -23,17 +31,20 @@ export class ClientsService {
     return savedClient;
   }
 
-  async findAll(): Promise<Client[]> {
-    return await this.clientRepository.find({
+  async findAll(user: any): Promise<Client[]> {
+    const clients = await this.clientRepository.find({
       relations: ['buildings'],
       order: {
         clientRank: 'ASC',
         createdAt: 'DESC'
       },
     });
+
+    // Filtrar datos financieros si es SUPPORT
+    return clients.map(client => this.filterFinancialData(client, user.role));
   }
 
-  async findAllWithStats(month?: number, year?: number): Promise<any[]> {
+  async findAllWithStats(user: any, month?: number, year?: number): Promise<any[]> {
     const query = this.clientRepository
       .createQueryBuilder('client')
       .leftJoin('client.buildings', 'building')
@@ -69,10 +80,13 @@ export class ClientsService {
       query.addSelect('0', 'monthlyRevenue');
     }
 
-    return await query.getRawMany();
+    const results = await query.getRawMany();
+
+    // Filtrar datos financieros si es SUPPORT
+    return results.map(result => this.filterFinancialData(result, user.role));
   }
 
-  async findOne(id: string): Promise<Client> {
+  async findOne(id: string, user: any): Promise<Client> {
     const client = await this.clientRepository.findOne({
       where: { id },
       relations: ['buildings'],
@@ -82,17 +96,23 @@ export class ClientsService {
       throw new NotFoundException(`Client with ID ${id} not found`);
     }
 
-    return client;
+    return this.filterFinancialData(client, user.role);
   }
 
   async update(id: string, updateClientDto: UpdateClientDto): Promise<Client> {
-    const client = await this.findOne(id);
+    const client = await this.clientRepository.findOne({ where: { id } });
+    if (!client) {
+      throw new NotFoundException(`Client with ID ${id} not found`);
+    }
     Object.assign(client, updateClientDto);
     return await this.clientRepository.save(client);
   }
 
   async remove(id: string): Promise<void> {
-    const client = await this.findOne(id);
+    const client = await this.clientRepository.findOne({ where: { id } });
+    if (!client) {
+      throw new NotFoundException(`Client with ID ${id} not found`);
+    }
     await this.clientRepository.remove(client);
   }
 

@@ -1,5 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
+import { User } from '../entities/user.entity';
 import { Client } from '../entities/client.entity';
 import { Building } from '../entities/building.entity';
 import { WorkOrder } from '../entities/work-order.entity';
@@ -13,7 +14,7 @@ export const typeOrmConfig: DataSourceOptions = {
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'eleven_db',
-  entities: [Client, Building, WorkOrder],
+  entities: [User, Client, Building, WorkOrder],
   migrations: ['dist/migrations/*.js'],
   synchronize: process.env.NODE_ENV === 'development', // Only in dev
   logging: process.env.NODE_ENV === 'development',

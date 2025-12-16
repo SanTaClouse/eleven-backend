@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,12 +16,18 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
 import { CreateClientDto, UpdateClientDto } from './dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
 @ApiTags('clients')
 @Controller('clients')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
@@ -56,11 +63,15 @@ export class ClientsController {
     status: HttpStatus.OK,
     description: 'List of clients retrieved successfully',
   })
-  findAll(@Query('month') month?: number, @Query('year') year?: number) {
+  findAll(
+    @GetUser() user: any,
+    @Query('month') month?: number,
+    @Query('year') year?: number,
+  ) {
     if (month && year) {
-      return this.clientsService.findAllWithStats(month, year);
+      return this.clientsService.findAllWithStats(user, month, year);
     }
-    return this.clientsService.findAll();
+    return this.clientsService.findAll(user);
   }
 
   @Get(':id')
@@ -74,8 +85,8 @@ export class ClientsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Client not found',
   })
-  findOne(@Param('id') id: string) {
-    return this.clientsService.findOne(id);
+  findOne(@GetUser() user: any, @Param('id') id: string) {
+    return this.clientsService.findOne(id, user);
   }
 
   @Patch(':id')

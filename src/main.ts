@@ -3,9 +3,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import * as morgan from 'morgan';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Cookie parser middleware
+  app.use(cookieParser());
 
   // HTTP request logger
   app.use(morgan('dev'));
@@ -33,6 +37,7 @@ async function bootstrap() {
     .setTitle('ELEVEN API')
     .setDescription('Elevator Maintenance SaaS - API Documentation')
     .setVersion('1.0')
+    .addTag('auth', 'Authentication endpoints')
     .addTag('clients', 'Client management endpoints')
     .addTag('buildings', 'Building inventory endpoints')
     .addTag('work-orders', 'Work orders and operations endpoints')

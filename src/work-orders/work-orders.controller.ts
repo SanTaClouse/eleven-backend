@@ -9,6 +9,7 @@ import {
   Query,
   HttpStatus,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,6 +17,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { WorkOrdersService } from './work-orders.service';
 import {
@@ -24,9 +26,13 @@ import {
   GenerateMonthlyOrdersDto,
   BulkUpdateWorkOrdersDto,
 } from './dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @ApiTags('work-orders')
 @Controller('work-orders')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class WorkOrdersController {
   constructor(private readonly workOrdersService: WorkOrdersService) {}
 
