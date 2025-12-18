@@ -40,6 +40,9 @@ export class Building {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
+  @Column({ type: 'timestamp', nullable: true })
+  deletedAt: Date;
+
   @Column({ type: 'uuid' })
   clientId: string;
 
@@ -51,7 +54,7 @@ export class Building {
 
   // Relations
   @ManyToOne(() => Client, (client) => client.buildings, {
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'clientId' })
   client: Client;

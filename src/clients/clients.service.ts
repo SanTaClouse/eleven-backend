@@ -21,8 +21,10 @@ export class ClientsService {
     return savedClient;
   }
 
-  async findAll(): Promise<Client[]> {
+  async findAll(includeInactive = false): Promise<Client[]> {
+    const whereCondition = includeInactive ? {} : { isActive: true };
     return await this.clientRepository.find({
+      where: whereCondition,
       relations: ['buildings'],
       order: {
         clientRank: 'ASC',
@@ -92,12 +94,58 @@ export class ClientsService {
     return await this.clientRepository.save(client);
   }
 
+  /**
+   * Obtiene información sobre el impacto de desactivar un cliente
+   * Retorna cantidad de edificios y órdenes de trabajo que se verían afectados
+   */
+  async getDeactivationImpact(id: string): Promise<{
+    buildingsCount: number;
+    workOrdersCount: number;
+  }> {
+    const result = await this.clientRepository
+      .createQueryBuilder('client')
+      .leftJoin('client.buildings', 'building')
+      .leftJoin('building.workOrders', 'workOrder')
+      .select('COUNT(DISTINCT building.id)', 'buildingsCount')
+      .addSelect('COUNT(workOrder.id)', 'workOrdersCount')
+      .where('client.id = :id', { id })
+      .getRawOne();
+
+    return {
+      buildingsCount: parseInt(result.buildingsCount || '0'),
+      workOrdersCount: parseInt(result.workOrdersCount || '0'),
+    };
+  }
+
+  /**
+   * Desactiva un cliente (soft delete) y sus edificios asociados
+   * Las órdenes de trabajo se mantienen intactas para preservar historial
+   */
   async remove(id: string): Promise<void> {
-    const client = await this.clientRepository.findOne({ where: { id } });
+    const client = await this.clientRepository.findOne({
+      where: { id },
+      relations: ['buildings'],
+    });
+
     if (!client) {
       throw new NotFoundException(`Client with ID ${id} not found`);
     }
-    await this.clientRepository.remove(client);
+
+    // Desactivar cliente
+    client.isActive = false;
+    client.deletedAt = new Date();
+    await this.clientRepository.save(client);
+
+    // Desactivar todos los edificios del cliente
+    if (client.buildings && client.buildings.length > 0) {
+      const buildingIds = client.buildings.map(b => b.id);
+      await this.clientRepository.manager
+        .createQueryBuilder()
+        .update('buildings')
+        .set({ isActive: false, deletedAt: new Date() })
+        .whereInIds(buildingIds)
+        .execute();
+    }
   }
 
   /**

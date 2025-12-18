@@ -61,6 +61,17 @@ export class BuildingsController {
     return this.buildingsService.findAllActive();
   }
 
+  @Get(':id/deactivation-impact')
+  @ApiOperation({ summary: 'Get deactivation impact for a building' })
+  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Deactivation impact information retrieved',
+  })
+  getDeactivationImpact(@Param('id') id: string) {
+    return this.buildingsService.getDeactivationImpact(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a building by ID' })
   @ApiParam({ name: 'id', description: 'Building UUID' })
@@ -95,11 +106,11 @@ export class BuildingsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a building' })
+  @ApiOperation({ summary: 'Deactivate a building (soft delete)' })
   @ApiParam({ name: 'id', description: 'Building UUID' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Building successfully deleted',
+    description: 'Building successfully deactivated',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,

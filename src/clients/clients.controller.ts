@@ -71,6 +71,17 @@ export class ClientsController {
     return this.clientsService.findAll();
   }
 
+  @Get(':id/deactivation-impact')
+  @ApiOperation({ summary: 'Get deactivation impact for a client' })
+  @ApiParam({ name: 'id', description: 'Client UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Deactivation impact information retrieved',
+  })
+  getDeactivationImpact(@Param('id') id: string) {
+    return this.clientsService.getDeactivationImpact(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a client by ID' })
   @ApiParam({ name: 'id', description: 'Client UUID' })
@@ -102,11 +113,11 @@ export class ClientsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a client' })
+  @ApiOperation({ summary: 'Deactivate a client (soft delete)' })
   @ApiParam({ name: 'id', description: 'Client UUID' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Client successfully deleted',
+    description: 'Client successfully deactivated',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,

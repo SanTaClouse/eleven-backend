@@ -24,8 +24,10 @@ export class BuildingsService {
     return savedBuilding;
   }
 
-  async findAll(): Promise<Building[]> {
+  async findAll(includeInactive = false): Promise<Building[]> {
+    const whereCondition = includeInactive ? {} : { isActive: true };
     return await this.buildingRepository.find({
+      where: whereCondition,
       relations: ['client'],
       order: { createdAt: 'DESC' },
     });
@@ -65,8 +67,37 @@ export class BuildingsService {
     return updatedBuilding;
   }
 
+  /**
+   * Obtiene información sobre el impacto de desactivar un edificio
+   * Retorna cantidad de órdenes de trabajo que se verían afectadas
+   */
+  async getDeactivationImpact(id: string): Promise<{
+    workOrdersCount: number;
+  }> {
+    const result = await this.buildingRepository
+      .createQueryBuilder('building')
+      .leftJoin('building.workOrders', 'workOrder')
+      .select('COUNT(workOrder.id)', 'workOrdersCount')
+      .where('building.id = :id', { id })
+      .getRawOne();
+
+    return {
+      workOrdersCount: parseInt(result.workOrdersCount || '0'),
+    };
+  }
+
+  /**
+   * Desactiva un edificio (soft delete)
+   * Las órdenes de trabajo se mantienen intactas para preservar historial
+   */
   async remove(id: string): Promise<void> {
     const building = await this.findOne(id);
-    await this.buildingRepository.remove(building);
+
+    // Desactivar edificio
+    building.isActive = false;
+    building.deletedAt = new Date();
+    await this.buildingRepository.save(building);
+
+    // Las órdenes de trabajo NO se desactivan - se mantienen para historial
   }
 }

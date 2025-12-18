@@ -92,7 +92,7 @@ export class WorkOrder {
 
   // Relations
   @ManyToOne(() => Building, (building) => building.workOrders, {
-    onDelete: 'CASCADE',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'buildingId' })
   building: Building;

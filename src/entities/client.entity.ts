@@ -31,6 +31,9 @@ export class Client {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
+  @Column({ type: 'timestamp', nullable: true })
+  deletedAt: Date;
+
   @Column({ type: 'int', nullable: true })
   clientRank: number;
 
