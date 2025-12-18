@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import { typeOrmConfig } from '../../config/typeorm.config';
 import { seedUsers } from './users.seeder';
 
-async function runSeeders() {
+export async function runSeeders() {
   const dataSource = new DataSource(typeOrmConfig);
 
   try {
@@ -17,9 +17,13 @@ async function runSeeders() {
     console.log('\n✨ Seeders completados!');
   } catch (error) {
     console.error('❌ Error ejecutando seeders:', error);
+    throw error;
   } finally {
     await dataSource.destroy();
   }
 }
 
-runSeeders();
+// Solo ejecutar si se llama directamente desde CLI
+if (require.main === module) {
+  runSeeders();
+}

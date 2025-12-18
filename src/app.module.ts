@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { ClientsModule } from './clients/clients.module';
 import { BuildingsModule } from './buildings/buildings.module';
 import { WorkOrdersModule } from './work-orders/work-orders.module';
+import { SeedController } from './seed.controller';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { WorkOrdersModule } from './work-orders/work-orders.module';
     BuildingsModule,
     WorkOrdersModule,
   ],
-  controllers: [],
+  controllers: [SeedController],
   providers: [],
 })
 export class AppModule {}
