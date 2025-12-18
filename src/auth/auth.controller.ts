@@ -35,7 +35,7 @@ export class AuthController {
     response.cookie('access_token', access_token, {
       httpOnly: true, // No accesible desde JavaScript
       secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
-      sameSite: 'strict', // Protección CSRF
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' para cross-domain en producción
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
 
