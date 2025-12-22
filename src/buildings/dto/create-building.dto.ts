@@ -12,6 +12,16 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBuildingDto {
   @ApiProperty({
+    description: 'Building name',
+    example: 'CAM2',
+    maxLength: 150,
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(150)
+  name: string;
+
+  @ApiProperty({
     description: 'Building address',
     example: '456 Oak Avenue, Building 5, Floor 12',
     maxLength: 255,
