@@ -14,9 +14,10 @@ export const typeOrmConfig: DataSourceOptions = process.env.DATABASE_URL
       url: process.env.DATABASE_URL,
       entities: [User, Client, Building, WorkOrder],
       migrations: ['dist/migrations/*.js'],
-      synchronize: process.env.NODE_ENV === 'development',
+      synchronize: false, // NEVER use synchronize in production - use migrations
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      // migrationsRun is handled in main.ts only on first startup
     }
   : {
       // Development: Use individual variables
