@@ -49,6 +49,7 @@ export class ClientsService {
       .createQueryBuilder('client')
       .leftJoin('client.buildings', 'building')
       .leftJoin('building.workOrders', 'workOrder')
+      .where('client.isActive = :isActive', { isActive: true })
       .select('client.id', 'id')
       .addSelect('client.name', 'name')
       .addSelect('client.phone', 'phone')
@@ -79,6 +80,10 @@ export class ClientsService {
     } else {
       query.addSelect('0', 'monthlyRevenue');
     }
+
+    // IMPORTANTE: Ordenar por ranking (menor número = mejor posición)
+    query.orderBy('client.clientRank', 'ASC', 'NULLS LAST');
+    query.addOrderBy('client.createdAt', 'DESC');
 
     return await query.getRawMany();
   }
@@ -174,27 +179,26 @@ export class ClientsService {
   }
 
   /**
-   * Calcula y actualiza el ranking de clientes basado en su facturación mensual promedio
-   * El cliente con mayor facturación promedio obtiene el ranking #1
+   * Calcula y actualiza el ranking de clientes basado en la suma total de precios de sus edificios
+   * El cliente con mayor ingreso mensual potencial obtiene el ranking #1
    */
   async updateClientRankings(): Promise<void> {
-    // Obtener todos los clientes con su facturación total
+    // Obtener todos los clientes con la suma de precios de sus edificios
     const clients = await this.clientRepository
       .createQueryBuilder('client')
       .leftJoin('client.buildings', 'building')
-      .leftJoin('building.workOrders', 'workOrder')
       .select('client.id', 'id')
-      .addSelect('COALESCE(AVG(building.price), 0)', 'avgRevenue')
+      .addSelect('COALESCE(SUM(building.price), 0)', 'totalRevenue')
       .groupBy('client.id')
-      .orderBy('"avgRevenue"', 'DESC')
+      .orderBy('"totalRevenue"', 'DESC')
       .getRawMany();
 
-    // Asignar rankings (1 = mayor facturación)
+    // Asignar rankings (1 = mayor ingreso)
     for (let i = 0; i < clients.length; i++) {
       const client = clients[i];
       await this.clientRepository.update(client.id, {
         clientRank: i + 1,
-        monthlyRevenue: parseFloat(client.avgRevenue || 0),
+        monthlyRevenue: parseFloat(client.totalRevenue || 0),
       });
     }
   }
