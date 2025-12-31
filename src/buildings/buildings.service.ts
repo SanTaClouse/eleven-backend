@@ -57,14 +57,28 @@ export class BuildingsService {
     id: string,
     updateBuildingDto: UpdateBuildingDto,
   ): Promise<Building> {
-    const building = await this.findOne(id);
+    // Buscar el edificio SIN cargar relaciones para evitar problemas con TypeORM
+    const building = await this.buildingRepository.findOne({
+      where: { id },
+    });
+
+    if (!building) {
+      throw new NotFoundException(`Building with ID ${id} not found`);
+    }
+
+    // Si se está actualizando el clientId, limpiar la relación cargada
+    if (updateBuildingDto.clientId) {
+      delete building.client;
+    }
+
     Object.assign(building, updateBuildingDto);
-    const updatedBuilding = await this.buildingRepository.save(building);
+    await this.buildingRepository.save(building);
 
     // Update client rankings after updating a building (price may have changed)
     await this.clientsService.updateClientRankings();
 
-    return updatedBuilding;
+    // Retornar con relaciones cargadas
+    return this.findOne(id);
   }
 
   /**
