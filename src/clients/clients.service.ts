@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { Client } from '../entities/client.entity';
 import { CreateClientDto, UpdateClientDto } from './dto';
 
@@ -12,6 +12,17 @@ export class ClientsService {
   ) { }
 
   async create(createClientDto: CreateClientDto): Promise<Client> {
+    // Validar que no exista un cliente con el mismo nombre
+    const existingClient = await this.clientRepository.findOne({
+      where: { name: createClientDto.name },
+    });
+
+    if (existingClient) {
+      throw new ConflictException(
+        `Ya existe un cliente con el nombre: ${createClientDto.name}`,
+      );
+    }
+
     const client = this.clientRepository.create(createClientDto);
     const savedClient = await this.clientRepository.save(client);
 
@@ -90,6 +101,20 @@ export class ClientsService {
     if (!client) {
       throw new NotFoundException(`Client with ID ${id} not found`);
     }
+
+    // Si se está actualizando el nombre, validar que no exista otro cliente con ese nombre
+    if (updateClientDto.name && updateClientDto.name !== client.name) {
+      const existingClient = await this.clientRepository.findOne({
+        where: { name: updateClientDto.name, id: Not(id) },
+      });
+
+      if (existingClient) {
+        throw new ConflictException(
+          `Ya existe otro cliente con el nombre: ${updateClientDto.name}`,
+        );
+      }
+    }
+
     Object.assign(client, updateClientDto);
     return await this.clientRepository.save(client);
   }
