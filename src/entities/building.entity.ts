@@ -22,19 +22,13 @@ export class Building {
   @Column({ type: 'varchar', length: 255 })
   address: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  phone: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  email: string;
-
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number; // Precio del abono mensual actual
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int' })
   floorsCount: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int' })
   elevatorsCount: number;
 
   @Column({ type: 'text', nullable: true })
