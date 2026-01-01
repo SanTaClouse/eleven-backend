@@ -32,16 +32,42 @@ export class ClientsService {
     return savedClient;
   }
 
-  async findAll(includeInactive = false): Promise<Client[]> {
+  async findAll(includeInactive = false): Promise<any[]> {
     const whereCondition = includeInactive ? {} : { isActive: true };
-    return await this.clientRepository.find({
-      where: whereCondition,
-      relations: ['buildings'],
-      order: {
-        clientRank: 'ASC',
-        createdAt: 'DESC'
-      },
-    });
+
+    // Usar query builder para obtener datos agregados
+    const query = this.clientRepository
+      .createQueryBuilder('client')
+      .leftJoin('client.buildings', 'building', 'building.isActive = :buildingActive', { buildingActive: true })
+      .select('client.id', 'id')
+      .addSelect('client.name', 'name')
+      .addSelect('client.phone', 'phone')
+      .addSelect('client.email', 'email')
+      .addSelect('client.address', 'address')
+      .addSelect('client.taxId', 'taxId')
+      .addSelect('client.isActive', 'isActive')
+      .addSelect('client.createdAt', 'createdAt')
+      .addSelect('client.clientRank', 'clientRank')
+      .addSelect('client.monthlyRevenue', 'monthlyRevenue')
+      .addSelect('COUNT(building.id)', 'buildingsCount')
+      .groupBy('client.id')
+      .addGroupBy('client.name')
+      .addGroupBy('client.phone')
+      .addGroupBy('client.email')
+      .addGroupBy('client.address')
+      .addGroupBy('client.taxId')
+      .addGroupBy('client.isActive')
+      .addGroupBy('client.createdAt')
+      .addGroupBy('client.clientRank')
+      .addGroupBy('client.monthlyRevenue')
+      .orderBy('client.clientRank', 'ASC', 'NULLS LAST')
+      .addOrderBy('client.createdAt', 'DESC');
+
+    if (!includeInactive) {
+      query.where('client.isActive = :isActive', { isActive: true });
+    }
+
+    return await query.getRawMany();
   }
 
   async findAllWithStats(month?: number, year?: number): Promise<any[]> {

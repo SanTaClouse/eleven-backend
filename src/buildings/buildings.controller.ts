@@ -72,6 +72,17 @@ export class BuildingsController {
     return this.buildingsService.getDeactivationImpact(id);
   }
 
+  @Get(':id/price-history')
+  @ApiOperation({ summary: 'Get price history for a building' })
+  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Price history retrieved successfully',
+  })
+  getPriceHistory(@Param('id') id: string) {
+    return this.buildingsService.getPriceHistory(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a building by ID' })
   @ApiParam({ name: 'id', description: 'Building UUID' })

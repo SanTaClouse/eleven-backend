@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Inject, forwardRef, ConflictException } 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { Building } from '../entities/building.entity';
+import { BuildingPriceHistory } from '../entities/building-price-history.entity';
 import { CreateBuildingDto, UpdateBuildingDto } from './dto';
 import { ClientsService } from '../clients/clients.service';
 
@@ -10,6 +11,8 @@ export class BuildingsService {
   constructor(
     @InjectRepository(Building)
     private readonly buildingRepository: Repository<Building>,
+    @InjectRepository(BuildingPriceHistory)
+    private readonly priceHistoryRepository: Repository<BuildingPriceHistory>,
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
   ) {}
@@ -28,6 +31,16 @@ export class BuildingsService {
 
     const building = this.buildingRepository.create(createBuildingDto);
     const savedBuilding = await this.buildingRepository.save(building);
+
+    // Registrar precio inicial en el historial
+    if (savedBuilding.price > 0) {
+      await this.priceHistoryRepository.save({
+        buildingId: savedBuilding.id,
+        oldPrice: null,
+        newPrice: savedBuilding.price,
+        reason: 'Precio inicial',
+      });
+    }
 
     // Update client rankings after creating a building
     await this.clientsService.updateClientRankings();
@@ -90,6 +103,16 @@ export class BuildingsService {
       }
     }
 
+    // Registrar cambio de precio en el historial
+    if (updateBuildingDto.price !== undefined && updateBuildingDto.price !== building.price) {
+      await this.priceHistoryRepository.save({
+        buildingId: building.id,
+        oldPrice: building.price,
+        newPrice: updateBuildingDto.price,
+        reason: updateBuildingDto.price > building.price ? 'Aumento de precio' : 'Reducción de precio',
+      });
+    }
+
     // Si se está actualizando el clientId, limpiar la relación cargada
     if (updateBuildingDto.clientId) {
       delete building.client;
@@ -137,5 +160,15 @@ export class BuildingsService {
     await this.buildingRepository.save(building);
 
     // Las órdenes de trabajo NO se desactivan - se mantienen para historial
+  }
+
+  /**
+   * Obtiene el historial de cambios de precio de un edificio
+   */
+  async getPriceHistory(id: string): Promise<BuildingPriceHistory[]> {
+    return await this.priceHistoryRepository.find({
+      where: { buildingId: id },
+      order: { changedAt: 'DESC' },
+    });
   }
 }

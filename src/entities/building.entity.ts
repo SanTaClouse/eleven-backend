@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Client } from './client.entity';
 import { WorkOrder } from './work-order.entity';
+import { BuildingPriceHistory } from './building-price-history.entity';
 
 @Entity('buildings')
 export class Building {
@@ -58,4 +59,7 @@ export class Building {
 
   @OneToMany(() => WorkOrder, (workOrder) => workOrder.building)
   workOrders: WorkOrder[];
+
+  @OneToMany(() => BuildingPriceHistory, (priceHistory) => priceHistory.building)
+  priceHistory: BuildingPriceHistory[];
 }
