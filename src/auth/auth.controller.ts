@@ -74,10 +74,24 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Logout de usuario' })
   async logout(@Res({ passthrough: true }) response: Response) {
-    // Limpiar todas las cookies
-    response.clearCookie('access_token');
-    response.clearCookie('refresh_token');
-    response.clearCookie('remember_me');
+    // Configuración para limpiar cookies (debe coincidir con la configuración al crearlas)
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+    };
+
+    // Limpiar cookies httpOnly
+    response.clearCookie('access_token', cookieOptions);
+    response.clearCookie('refresh_token', cookieOptions);
+
+    // Limpiar cookie remember_me (no es httpOnly)
+    response.clearCookie('remember_me', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+    });
+
     return { message: 'Sesión cerrada correctamente' };
   }
 
@@ -120,10 +134,23 @@ export class AuthController {
   ) {
     await this.authService.logoutAllDevices(user.id);
 
-    // Limpiar todas las cookies del dispositivo actual
-    response.clearCookie('access_token');
-    response.clearCookie('refresh_token');
-    response.clearCookie('remember_me');
+    // Configuración para limpiar cookies (debe coincidir con la configuración al crearlas)
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+    };
+
+    // Limpiar cookies httpOnly
+    response.clearCookie('access_token', cookieOptions);
+    response.clearCookie('refresh_token', cookieOptions);
+
+    // Limpiar cookie remember_me (no es httpOnly)
+    response.clearCookie('remember_me', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+    });
 
     return { message: 'Sesión cerrada en todos los dispositivos' };
   }
