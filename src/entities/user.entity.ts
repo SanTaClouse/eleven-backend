@@ -36,6 +36,10 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ type: 'timestamp', nullable: true })
+  @Exclude() // No exponer en respuestas JSON
+  tokensValidAfter: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

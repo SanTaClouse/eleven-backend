@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +14,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -20,35 +23,92 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
+    const { email, password, rememberMe = false } = loginDto;
 
-    // Buscar usuario activo
-    const user = await this.userRepository.findOne({
-      where: { email, isActive: true },
-    });
+    try {
+      // Buscar usuario activo
+      const user = await this.userRepository.findOne({
+        where: { email, isActive: true },
+      });
 
-    if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      if (!user) {
+        this.logger.warn(`Login fallido: Usuario no encontrado - ${email}`);
+        throw new UnauthorizedException('Credenciales inválidas');
+      }
+
+      // Verificar contraseña
+      const isPasswordValid = await compare(password, user.password);
+      if (!isPasswordValid) {
+        this.logger.warn(`Login fallido: Contraseña incorrecta - ${email}`);
+        throw new UnauthorizedException('Credenciales inválidas');
+      }
+
+      // Generar tokens con duración dinámica
+      const tokens = await this.generateTokens(user, rememberMe);
+
+      this.logger.log(`Login exitoso: ${email}${rememberMe ? ' (Recuérdame activado)' : ''}`);
+
+      // Retornar tokens y datos del usuario (sin password)
+      return {
+        ...tokens,
+        rememberMe,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        },
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      this.logger.error(`Error en login: ${error.message}`, error.stack);
+      throw new UnauthorizedException('Error en el proceso de autenticación');
     }
+  }
 
-    // Verificar contraseña
-    const isPasswordValid = await compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
-    }
-
-    // Generar JWT
+  async generateTokens(user: User, rememberMe: boolean = false) {
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
     };
 
-    const access_token = this.jwtService.sign(payload);
+    const access_token = this.jwtService.sign(payload, {
+      expiresIn: '15m', // 15 minutos (siempre igual por seguridad)
+    });
 
-    // Retornar token y datos del usuario (sin password)
+    // Duración del refresh token según rememberMe
+    const refreshTokenExpiry = rememberMe ? '30d' : '7d';
+
+    const refresh_token = this.jwtService.sign(
+      { sub: user.id, type: 'refresh' },
+      {
+        secret:
+          process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'refresh-secret',
+        expiresIn: refreshTokenExpiry,
+      },
+    );
+
+    return { access_token, refresh_token, refreshTokenExpiry };
+  }
+
+  async refreshTokens(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId, isActive: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado o inactivo');
+    }
+
+    const tokens = await this.generateTokens(user);
+
+    this.logger.log(`Tokens refrescados: ${user.email}`);
+
     return {
-      access_token,
+      ...tokens,
       user: {
         id: user.id,
         email: user.email,
@@ -89,8 +149,32 @@ export class AuthService {
 
     // Actualizar contraseña
     user.password = await hash(newPassword, 10);
+
+    // Invalidar todos los tokens existentes
+    user.tokensValidAfter = new Date();
+
     await this.userRepository.save(user);
 
-    return { message: 'Contraseña actualizada correctamente' };
+    this.logger.log(`Contraseña cambiada y tokens invalidados: ${user.email}`);
+
+    return { message: 'Contraseña actualizada correctamente. Todos los dispositivos fueron desconectados.' };
+  }
+
+  async logoutAllDevices(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    // Invalidar todos los tokens emitidos antes de este momento
+    user.tokensValidAfter = new Date();
+    await this.userRepository.save(user);
+
+    this.logger.log(`Logout de todos los dispositivos: ${user.email}`);
+
+    return { message: 'Sesión cerrada en todos los dispositivos' };
   }
 }

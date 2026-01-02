@@ -20,11 +20,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    // payload contiene: { sub: userId, email, role }
+    // payload contiene: { sub: userId, email, role, iat (issued at) }
     const user = await this.authService.validateUser(payload.sub);
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    // Verificar si el token fue emitido antes de tokensValidAfter
+    if (user.tokensValidAfter) {
+      const tokenIssuedAt = new Date(payload.iat * 1000); // iat está en segundos
+      if (tokenIssuedAt < user.tokensValidAfter) {
+        throw new UnauthorizedException('Token invalidado. Por favor, inicia sesión nuevamente.');
+      }
     }
 
     // Esto se agrega al request.user

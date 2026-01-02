@@ -11,10 +11,12 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { GetUser } from './decorators/get-user.decorator';
 
 @ApiTags('auth')
@@ -23,23 +25,48 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 intentos por minuto
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login de usuario' })
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { access_token, user } = await this.authService.login(loginDto);
+    const { access_token, refresh_token, refreshTokenExpiry, rememberMe, user } =
+      await this.authService.login(loginDto);
 
-    // Guardar token en httpOnly cookie
+    // Duración dinámica según rememberMe
+    const refreshMaxAge = rememberMe
+      ? 30 * 24 * 60 * 60 * 1000 // 30 días
+      : 7 * 24 * 60 * 60 * 1000;  // 7 días
+
+    // Guardar access token en httpOnly cookie (15 minutos)
     response.cookie('access_token', access_token, {
-      httpOnly: true, // No accesible desde JavaScript
-      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' para cross-domain en producción
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 15 * 60 * 1000, // 15 minutos
     });
 
-    // Retornar solo datos del usuario (NO el token)
+    // Guardar refresh token en httpOnly cookie (7 o 30 días)
+    response.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: refreshMaxAge,
+    });
+
+    // Guardar flag rememberMe en cookie normal (accesible desde JS)
+    if (rememberMe) {
+      response.cookie('remember_me', 'true', {
+        httpOnly: false, // Accesible desde JavaScript
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: refreshMaxAge,
+      });
+    }
+
+    // Retornar solo datos del usuario (NO los tokens)
     return { user };
   }
 
@@ -47,9 +74,58 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Logout de usuario' })
   async logout(@Res({ passthrough: true }) response: Response) {
-    // Limpiar cookie
+    // Limpiar todas las cookies
     response.clearCookie('access_token');
+    response.clearCookie('refresh_token');
+    response.clearCookie('remember_me');
     return { message: 'Sesión cerrada correctamente' };
+  }
+
+  @Post('refresh')
+  @UseGuards(JwtRefreshAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refrescar access token usando refresh token' })
+  async refresh(
+    @GetUser() user: any,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const { access_token, refresh_token } = await this.authService.refreshTokens(user.id);
+
+    // Actualizar ambas cookies
+    response.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 15 * 60 * 1000, // 15 minutos
+    });
+
+    response.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+    });
+
+    return { message: 'Tokens refrescados correctamente' };
+  }
+
+  @Post('logout-all')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cerrar sesión en todos los dispositivos' })
+  async logoutAll(
+    @GetUser() user: any,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.logoutAllDevices(user.id);
+
+    // Limpiar todas las cookies del dispositivo actual
+    response.clearCookie('access_token');
+    response.clearCookie('refresh_token');
+    response.clearCookie('remember_me');
+
+    return { message: 'Sesión cerrada en todos los dispositivos' };
   }
 
   @Get('me')
