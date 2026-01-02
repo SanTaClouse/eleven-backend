@@ -17,7 +17,6 @@ export class LoginDto {
     required: false,
     description: 'Mantener sesión activa por 30 días en vez de 7'
   })
-  @IsBoolean()
   @IsOptional()
   rememberMe?: boolean;
 }
