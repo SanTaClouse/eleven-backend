@@ -28,22 +28,6 @@ export class WorkOrdersService {
   ) {}
 
   async create(createWorkOrderDto: CreateWorkOrderDto): Promise<WorkOrder> {
-    // Check for existing work order with same type
-    const existing = await this.workOrderRepository.findOne({
-      where: {
-        buildingId: createWorkOrderDto.buildingId,
-        month: createWorkOrderDto.month,
-        year: createWorkOrderDto.year,
-        type: createWorkOrderDto.type || WorkOrderType.MANTENIMIENTO,
-      },
-    });
-
-    if (existing) {
-      throw new ConflictException(
-        `Work order of this type for this building already exists for ${createWorkOrderDto.month}/${createWorkOrderDto.year}`,
-      );
-    }
-
     const workOrder = this.workOrderRepository.create(createWorkOrderDto);
     return await this.workOrderRepository.save(workOrder);
   }
