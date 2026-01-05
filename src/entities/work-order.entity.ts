@@ -26,7 +26,7 @@ export enum WorkOrderType {
 
 @Entity('work_orders')
 @Index(['month', 'year']) // Optimiza queries por período
-@Index(['buildingId', 'month', 'year', 'type'], { unique: true }) // Evita duplicados del mismo tipo
+@Index(['buildingId', 'month', 'year', 'type']) // Índice para mejorar performance de queries
 export class WorkOrder {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -76,7 +76,13 @@ export class WorkOrder {
   priceSnapshot: number; // Precio del edificio al momento de generar la orden
 
   @Column({ type: 'timestamp', nullable: true })
+  startedAt: Date; // Fecha en que se marcó como en progreso
+
+  @Column({ type: 'timestamp', nullable: true })
   completedAt: Date; // Fecha en que se marcó como realizado
+
+  @Column({ type: 'timestamp', nullable: true })
+  cancelledAt: Date; // Fecha en que se canceló
 
   @Column({ type: 'timestamp', nullable: true })
   invoicedAt: Date; // Fecha en que se marcó como facturado

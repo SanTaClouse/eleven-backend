@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString, IsNumber, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { WorkOrderStatus, WorkOrderType } from '../../entities/work-order.entity';
 
@@ -60,4 +60,13 @@ export class UpdateWorkOrderDto {
   @IsOptional()
   @IsEnum(WorkOrderType)
   type?: WorkOrderType;
+
+  @ApiPropertyOptional({
+    description: 'Price snapshot - can only be edited for non-maintenance work orders',
+    example: 45000,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  priceSnapshot?: number;
 }

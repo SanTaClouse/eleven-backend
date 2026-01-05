@@ -215,6 +215,24 @@ export class WorkOrdersController {
     return this.workOrdersService.findOne(id);
   }
 
+  @Get(':id/status-history')
+  @ApiOperation({
+    summary: 'Get status change history for a work order',
+    description: 'Returns all status changes with timestamps for audit purposes',
+  })
+  @ApiParam({ name: 'id', description: 'Work Order UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Status history retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Work order not found',
+  })
+  getStatusHistory(@Param('id') id: string) {
+    return this.workOrdersService.getStatusHistory(id);
+  }
+
   @Patch(':id')
   @ApiOperation({
     summary: 'Update a work order',

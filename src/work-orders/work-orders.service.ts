@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WorkOrder, WorkOrderStatus, WorkOrderType } from '../entities/work-order.entity';
+import { WorkOrderStatusHistory } from '../entities/work-order-status-history.entity';
 import { BuildingsService } from '../buildings/buildings.service';
 import { ClientsService } from '../clients/clients.service';
 import {
@@ -22,6 +23,8 @@ export class WorkOrdersService {
   constructor(
     @InjectRepository(WorkOrder)
     private readonly workOrderRepository: Repository<WorkOrder>,
+    @InjectRepository(WorkOrderStatusHistory)
+    private readonly statusHistoryRepository: Repository<WorkOrderStatusHistory>,
     private readonly buildingsService: BuildingsService,
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
@@ -62,13 +65,45 @@ export class WorkOrdersService {
     updateWorkOrderDto: UpdateWorkOrderDto,
   ): Promise<WorkOrder> {
     const workOrder = await this.findOne(id);
+    const oldStatus = workOrder.statusOperativo;
 
-    // Auto-set timestamps based on status changes
+    // Validate: Cannot edit price for maintenance work orders
     if (
-      updateWorkOrderDto.statusOperativo === WorkOrderStatus.COMPLETED &&
-      !workOrder.completedAt
+      updateWorkOrderDto.priceSnapshot !== undefined &&
+      workOrder.type === WorkOrderType.MANTENIMIENTO
     ) {
-      workOrder.completedAt = new Date();
+      throw new ConflictException(
+        'No se puede editar el precio de órdenes de mantenimiento. El precio viene del edificio.',
+      );
+    }
+
+    // Track status changes and auto-set timestamps
+    if (
+      updateWorkOrderDto.statusOperativo &&
+      updateWorkOrderDto.statusOperativo !== oldStatus
+    ) {
+      const newStatus = updateWorkOrderDto.statusOperativo;
+
+      // Set appropriate timestamp based on new status
+      if (newStatus === WorkOrderStatus.IN_PROGRESS && !workOrder.startedAt) {
+        workOrder.startedAt = new Date();
+      }
+
+      if (newStatus === WorkOrderStatus.COMPLETED && !workOrder.completedAt) {
+        workOrder.completedAt = new Date();
+      }
+
+      if (newStatus === WorkOrderStatus.CANCELLED && !workOrder.cancelledAt) {
+        workOrder.cancelledAt = new Date();
+      }
+
+      // Log status change to history
+      const historyEntry = this.statusHistoryRepository.create({
+        workOrderId: workOrder.id,
+        fromStatus: oldStatus,
+        toStatus: newStatus,
+      });
+      await this.statusHistoryRepository.save(historyEntry);
     }
 
     if (updateWorkOrderDto.isFacturado && !workOrder.invoicedAt) {
@@ -97,6 +132,13 @@ export class WorkOrdersService {
   async remove(id: string): Promise<void> {
     const workOrder = await this.findOne(id);
     await this.workOrderRepository.remove(workOrder);
+  }
+
+  async getStatusHistory(id: string): Promise<WorkOrderStatusHistory[]> {
+    return await this.statusHistoryRepository.find({
+      where: { workOrderId: id },
+      order: { createdAt: 'ASC' },
+    });
   }
 
   /**
