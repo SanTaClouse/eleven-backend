@@ -39,22 +39,42 @@ export class CreateBuildingDto {
   price: number;
 
   @ApiProperty({
-    description: 'Number of floors in the building',
+    description: 'Number of stops (paradas) in the building',
     example: 12,
-    minimum: 1,
+    minimum: 0,
   })
   @IsNumber()
-  @Min(1)
-  floorsCount: number;
+  @Min(0)
+  stops: number;
 
   @ApiProperty({
     description: 'Number of elevators in the building',
     example: 2,
-    minimum: 1,
+    minimum: 0,
   })
   @IsNumber()
-  @Min(1)
+  @Min(0)
   elevatorsCount: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of car lifts (montacoches)',
+    example: 1,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  carLifts?: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of gates (portones)',
+    example: 2,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  gates?: number;
 
   @ApiPropertyOptional({
     description: 'Additional notes or observations',

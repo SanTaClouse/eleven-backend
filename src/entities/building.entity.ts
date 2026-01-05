@@ -27,10 +27,16 @@ export class Building {
   price: number; // Precio del abono mensual actual
 
   @Column({ type: 'int' })
-  floorsCount: number;
+  stops: number; // Cantidad de paradas (anteriormente floorsCount)
 
   @Column({ type: 'int' })
   elevatorsCount: number;
+
+  @Column({ type: 'int', nullable: true })
+  carLifts: number; // Cantidad de montacoches
+
+  @Column({ type: 'int', nullable: true })
+  gates: number; // Cantidad de portones
 
   @Column({ type: 'text', nullable: true })
   notes: string;
