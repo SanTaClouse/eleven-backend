@@ -11,6 +11,7 @@ import { compare, hash } from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { FirebaseService } from '../config/firebase.config';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -46,11 +48,25 @@ export class AuthService {
       // Generar tokens con duración dinámica
       const tokens = await this.generateTokens(user, rememberMe);
 
+      // Generar Firebase Custom Token para acceso a Storage
+      let firebaseToken: string | null = null;
+      try {
+        firebaseToken = await this.firebaseService.createCustomToken(user.id, {
+          email: user.email,
+          role: user.role,
+        });
+        this.logger.debug(`Firebase custom token created for user: ${user.id}`);
+      } catch (error) {
+        this.logger.error(`Failed to create Firebase token for ${email}:`, error.message);
+        // No fallar el login si Firebase falla, solo loggear
+      }
+
       this.logger.log(`Login exitoso: ${email}${rememberMe ? ' (Recuérdame activado)' : ''}`);
 
       // Retornar tokens y datos del usuario (sin password)
       return {
         ...tokens,
+        firebaseToken,
         rememberMe,
         user: {
           id: user.id,
@@ -105,10 +121,23 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user);
 
+    // Generar nuevo Firebase Custom Token
+    let firebaseToken: string | null = null;
+    try {
+      firebaseToken = await this.firebaseService.createCustomToken(user.id, {
+        email: user.email,
+        role: user.role,
+      });
+      this.logger.debug(`Firebase custom token refreshed for user: ${user.id}`);
+    } catch (error) {
+      this.logger.error(`Failed to refresh Firebase token for ${user.email}:`, error.message);
+    }
+
     this.logger.log(`Tokens refrescados: ${user.email}`);
 
     return {
       ...tokens,
+      firebaseToken,
       user: {
         id: user.id,
         email: user.email,

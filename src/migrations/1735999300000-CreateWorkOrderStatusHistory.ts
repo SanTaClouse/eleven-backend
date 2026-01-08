@@ -3,6 +3,12 @@ import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } f
 export class CreateWorkOrderStatusHistory1735999300000 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        // Check if table already exists
+        const tableExists = await queryRunner.hasTable("work_order_status_history");
+        if (tableExists) {
+            return; // Skip if already exists
+        }
+
         await queryRunner.createTable(
             new Table({
                 name: "work_order_status_history",

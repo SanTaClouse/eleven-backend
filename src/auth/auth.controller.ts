@@ -8,8 +8,10 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Logger,
+  Req,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
@@ -22,6 +24,8 @@ import { GetUser } from './decorators/get-user.decorator';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
@@ -31,8 +35,11 @@ export class AuthController {
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
+    @Req() request: Request,
   ) {
-    const { access_token, refresh_token, refreshTokenExpiry, rememberMe, user } =
+    this.logger.log(`[Login] Attempt for email: ${loginDto.email}`);
+
+    const { access_token, refresh_token, refreshTokenExpiry, rememberMe, firebaseToken, user } =
       await this.authService.login(loginDto);
 
     // Duración dinámica según rememberMe
@@ -40,19 +47,24 @@ export class AuthController {
       ? 30 * 24 * 60 * 60 * 1000 // 30 días
       : 7 * 24 * 60 * 60 * 1000;  // 7 días
 
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' as const : 'lax' as const,
+    };
+
+    this.logger.debug(`[Login] Setting cookies with options: ${JSON.stringify({ ...cookieOptions, origin: request.headers.origin })}`);
+
     // Guardar access token en httpOnly cookie (15 minutos)
     response.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      ...cookieOptions,
       maxAge: 15 * 60 * 1000, // 15 minutos
     });
 
     // Guardar refresh token en httpOnly cookie (7 o 30 días)
     response.cookie('refresh_token', refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      ...cookieOptions,
       maxAge: refreshMaxAge,
     });
 
@@ -60,14 +72,19 @@ export class AuthController {
     if (rememberMe) {
       response.cookie('remember_me', 'true', {
         httpOnly: false, // Accesible desde JavaScript
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: isProduction,
+        sameSite: isProduction ? 'none' as const : 'lax' as const,
         maxAge: refreshMaxAge,
       });
     }
 
-    // Retornar solo datos del usuario (NO los tokens)
-    return { user };
+    this.logger.log(`[Login] Successful login for user: ${user.email} (ID: ${user.id})`);
+
+    // Retornar datos del usuario y Firebase token (NO los tokens JWT que están en cookies)
+    return {
+      user,
+      firebaseToken, // Token para autenticarse en Firebase
+    };
   }
 
   @Post('logout')
@@ -103,7 +120,7 @@ export class AuthController {
     @GetUser() user: any,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const { access_token, refresh_token } = await this.authService.refreshTokens(user.id);
+    const { access_token, refresh_token, firebaseToken } = await this.authService.refreshTokens(user.id);
 
     // Actualizar ambas cookies
     response.cookie('access_token', access_token, {
@@ -120,7 +137,10 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
 
-    return { message: 'Tokens refrescados correctamente' };
+    return {
+      message: 'Tokens refrescados correctamente',
+      firebaseToken, // Incluir nuevo token de Firebase
+    };
   }
 
   @Post('logout-all')
@@ -159,7 +179,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener datos del usuario actual' })
-  async getMe(@GetUser() user: any) {
+  async getMe(@GetUser() user: any, @Req() request: Request) {
+    this.logger.debug(`[Get Me] Request from origin: ${request.headers.origin}`);
+    this.logger.debug(`[Get Me] Cookies received: ${JSON.stringify(Object.keys(request.cookies || {}))}`);
+    this.logger.log(`[Get Me] User authenticated: ${user.email} (ID: ${user.id})`);
+
     return { user };
   }
 

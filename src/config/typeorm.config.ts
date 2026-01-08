@@ -31,7 +31,7 @@ export const typeOrmConfig: DataSourceOptions = process.env.DATABASE_URL
       database: process.env.DB_DATABASE || 'eleven_db',
       entities: [User, Client, Building, WorkOrder, WorkOrderStatusHistory, BuildingPriceHistory],
       migrations: ['dist/migrations/*.js'],
-      synchronize: true,
+      synchronize: false, // Use migrations instead of auto-sync to avoid schema conflicts
       logging: true,
     };
 

@@ -15,6 +15,7 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate -d src/config/typeorm.config.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/config/typeorm.config.ts",
+    "migration:run:prod": "typeorm migration:run -d dist/config/typeorm.config.js",
     "migration:revert": "npm run typeorm -- migration:revert -d src/config/typeorm.config.ts",
     "db:reset": "ts-node src/database/reset-db.ts",
     "seed": "ts-node src/database/seeders/run-seeders.ts"
@@ -36,6 +37,7 @@
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.3",
+    "firebase-admin": "^13.6.0",
     "morgan": "^1.10.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

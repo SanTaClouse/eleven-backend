@@ -3,6 +3,12 @@ import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm
 export class CreateBuildingPriceHistory1767225032981 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        // Check if table already exists
+        const tableExists = await queryRunner.hasTable("building_price_history");
+        if (tableExists) {
+            return; // Skip if already exists
+        }
+
         await queryRunner.createTable(
             new Table({
                 name: "building_price_history",

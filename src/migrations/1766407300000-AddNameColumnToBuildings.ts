@@ -28,16 +28,22 @@ export class AddNameColumnToBuildings1766407300000 implements MigrationInterface
    * - PostgreSQL compatible
    */
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.addColumn(
-      'buildings',
-      new TableColumn({
-        name: 'name',
-        type: 'varchar',
-        length: '150',
-        isNullable: true,
-        comment: 'Short name or identifier for the building (e.g., CAM2)',
-      }),
-    );
+    // Check if column already exists
+    const table = await queryRunner.getTable('buildings');
+    const hasNameColumn = table.columns.find(col => col.name === 'name');
+
+    if (!hasNameColumn) {
+      await queryRunner.addColumn(
+        'buildings',
+        new TableColumn({
+          name: 'name',
+          type: 'varchar',
+          length: '150',
+          isNullable: true,
+          comment: 'Short name or identifier for the building (e.g., CAM2)',
+        }),
+      );
+    }
 
     // Optional: Add an index for faster searches by name
     // await queryRunner.query(
