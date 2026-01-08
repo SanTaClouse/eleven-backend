@@ -1,0 +1,47 @@
+# Render Blueprint para Eleven Backend
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # Backend API con Docker
+  - type: web
+    name: eleven-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    branch: main
+    plan: starter
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Database - Railway PostgreSQL (Public URL)
+      - key: DATABASE_URL
+        sync: false
+
+      # JWT Secrets
+      - key: JWT_SECRET
+        sync: false
+
+      - key: JWT_REFRESH_SECRET
+        sync: false
+
+      # Frontend URL (Vercel)
+      - key: FRONTEND_URL
+        value: https://tu-frontend.vercel.app
+
+      # Firebase (Storage de facturas)
+      - key: FIREBASE_PROJECT_ID
+        value: eleven-db-facturas
+
+      - key: FIREBASE_CLIENT_EMAIL
+        value: firebase-adminsdk-fbsvc@eleven-db-facturas.iam.gserviceaccount.com
+
+      - key: FIREBASE_STORAGE_BUCKET
+        value: eleven-db-facturas.appspot.com
+
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+
+      - key: PORT
+        value: 3001
