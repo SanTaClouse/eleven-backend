@@ -10,7 +10,7 @@ services:
     dockerContext: .
     branch: main
     plan: starter
-    healthCheckPath: /api
+    healthCheckPath: /api/docs
     envVars:
       - key: NODE_ENV
         value: production
