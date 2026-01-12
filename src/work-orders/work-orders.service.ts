@@ -64,7 +64,18 @@ export class WorkOrdersService {
     id: string,
     updateWorkOrderDto: UpdateWorkOrderDto,
   ): Promise<WorkOrder> {
-    const workOrder = await this.findOne(id);
+    // Optimización: Solo cargar las relaciones si NO es una actualización simple de isFacturado/isCobrado
+    const needsRelations = updateWorkOrderDto.statusOperativo !== undefined ||
+                          updateWorkOrderDto.priceSnapshot !== undefined;
+
+    const workOrder = needsRelations
+      ? await this.findOne(id)
+      : await this.workOrderRepository.findOne({ where: { id } });
+
+    if (!workOrder) {
+      throw new NotFoundException(`Work order with ID ${id} not found`);
+    }
+
     const oldStatus = workOrder.statusOperativo;
 
     // Validate: Cannot edit price for maintenance work orders
@@ -126,7 +137,14 @@ export class WorkOrdersService {
     }
 
     Object.assign(workOrder, updateWorkOrderDto);
-    return await this.workOrderRepository.save(workOrder);
+    const updatedWorkOrder = await this.workOrderRepository.save(workOrder);
+
+    // Si no cargamos las relaciones antes, cargarlas ahora para la respuesta
+    if (!needsRelations) {
+      return await this.findOne(updatedWorkOrder.id);
+    }
+
+    return updatedWorkOrder;
   }
 
   async remove(id: string): Promise<void> {
