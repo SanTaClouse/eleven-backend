@@ -40,8 +40,25 @@ async function bootstrap() {
   app.use(morgan('dev'));
 
   // Enable CORS for frontend
+  // En producción, las peticiones vienen del mismo origen (proxy de Vercel)
+  // pero también permitimos el FRONTEND_URL por si se accede directamente
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+  ].filter(Boolean);
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Permitir peticiones sin origin (mismo origen via proxy, Postman, etc.)
+      if (!origin) {
+        return callback(null, true);
+      }
+      // Permitir orígenes configurados
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      // Bloquear otros orígenes
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   });
 
