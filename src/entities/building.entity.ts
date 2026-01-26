@@ -42,6 +42,9 @@ export class Building {
   notes: string;
 
   @Column({ type: 'boolean', default: true })
+  maintenanceActive: boolean;
+
+  @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
   @Column({ type: 'timestamp', nullable: true })
