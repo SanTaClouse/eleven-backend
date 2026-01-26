@@ -15,7 +15,7 @@ export class BuildingsService {
     private readonly priceHistoryRepository: Repository<BuildingPriceHistory>,
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
-  ) {}
+  ) { }
 
   async create(createBuildingDto: CreateBuildingDto): Promise<Building> {
     // Validar que no exista un edificio con la misma dirección
@@ -60,6 +60,16 @@ export class BuildingsService {
   async findAllActive(): Promise<Building[]> {
     return await this.buildingRepository.find({
       where: { isActive: true },
+      relations: ['client'],
+    });
+  }
+
+  async findAllForMaintenance(): Promise<Building[]> {
+    return await this.buildingRepository.find({
+      where: {
+        maintenanceActive: true,
+        isActive: true
+      },
       relations: ['client'],
     });
   }

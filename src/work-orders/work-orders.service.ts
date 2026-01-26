@@ -28,7 +28,7 @@ export class WorkOrdersService {
     private readonly buildingsService: BuildingsService,
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
-  ) {}
+  ) { }
 
   async create(createWorkOrderDto: CreateWorkOrderDto): Promise<WorkOrder> {
     const workOrder = this.workOrderRepository.create(createWorkOrderDto);
@@ -66,7 +66,7 @@ export class WorkOrdersService {
   ): Promise<WorkOrder> {
     // Optimización: Solo cargar las relaciones si NO es una actualización simple de isFacturado/isCobrado
     const needsRelations = updateWorkOrderDto.statusOperativo !== undefined ||
-                          updateWorkOrderDto.priceSnapshot !== undefined;
+      updateWorkOrderDto.priceSnapshot !== undefined;
 
     const workOrder = needsRelations
       ? await this.findOne(id)
@@ -167,7 +167,7 @@ export class WorkOrdersService {
     dto: GenerateMonthlyOrdersDto,
   ): Promise<{ created: number; skipped: number; errors: string[] }> {
     const { month, year } = dto;
-    const buildings = await this.buildingsService.findAllActive();
+    const buildings = await this.buildingsService.findAllForMaintenance();
 
     const results = {
       created: 0,

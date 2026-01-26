@@ -6,4 +6,8 @@ export class UpdateBuildingDto extends PartialType(CreateBuildingDto) {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  maintenanceActive?: boolean;
 }
