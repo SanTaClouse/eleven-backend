@@ -69,4 +69,12 @@ export class UpdateWorkOrderDto {
   @IsNumber()
   @Min(0)
   priceSnapshot?: number;
+
+  @ApiPropertyOptional({
+    description: 'Actual execution date of the work (can be edited by user)',
+    example: '2025-01-23T10:00:00.000Z',
+  })
+  @IsOptional()
+  @IsString()
+  executedAt?: string;
 }

@@ -102,6 +102,10 @@ export class WorkOrdersService {
 
       if (newStatus === WorkOrderStatus.COMPLETED && !workOrder.completedAt) {
         workOrder.completedAt = new Date();
+        // También establecer fecha de ejecución si no existe
+        if (!workOrder.executedAt) {
+          workOrder.executedAt = new Date();
+        }
       }
 
       if (newStatus === WorkOrderStatus.CANCELLED && !workOrder.cancelledAt) {
@@ -134,6 +138,14 @@ export class WorkOrdersService {
     if (updateWorkOrderDto.invoiceUrl === null && workOrder.invoiceUploadedAt) {
       workOrder.invoiceUploadedAt = null;
       workOrder.invoiceFileName = null;
+    }
+
+    // Handle executedAt - parse string to Date if provided
+    if (updateWorkOrderDto.executedAt !== undefined) {
+      workOrder.executedAt = updateWorkOrderDto.executedAt
+        ? new Date(updateWorkOrderDto.executedAt)
+        : null;
+      delete updateWorkOrderDto.executedAt; // Remove to avoid double assignment
     }
 
     Object.assign(workOrder, updateWorkOrderDto);

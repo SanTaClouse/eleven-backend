@@ -79,7 +79,10 @@ export class WorkOrder {
   startedAt: Date; // Fecha en que se marcó como en progreso
 
   @Column({ type: 'timestamp', nullable: true })
-  completedAt: Date; // Fecha en que se marcó como realizado
+  completedAt: Date; // Fecha en que se marcó como realizado (registro en sistema)
+
+  @Column({ type: 'timestamp', nullable: true })
+  executedAt: Date; // Fecha real de ejecución del trabajo (editable por usuario)
 
   @Column({ type: 'timestamp', nullable: true })
   cancelledAt: Date; // Fecha en que se canceló
