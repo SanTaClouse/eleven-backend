@@ -270,7 +270,7 @@ export class WorkOrdersService {
         invoiced: invoicedRevenue,
         paid: paidRevenue,
         invoicedRate: totalRevenue > 0 ? (invoicedRevenue / totalRevenue) * 100 : 0,
-        collectionRate: invoicedRevenue > 0 ? (paidRevenue / invoicedRevenue) * 100 : 0,
+        collectionRate: totalRevenue > 0 ? (paidRevenue / totalRevenue) * 100 : 0,
       },
     };
   }
