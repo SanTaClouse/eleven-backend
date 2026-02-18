@@ -21,7 +21,7 @@ import { SeedController } from './seed.controller';
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // 60 segundos
-        limit: 10, // 10 requests por minuto por defecto
+        limit: 120, // 120 requests por minuto (~2 por segundo)
       },
     ]),
     AuthModule,
