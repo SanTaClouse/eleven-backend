@@ -4,7 +4,7 @@ import { WorkOrderStatus, WorkOrderType } from '../../entities/work-order.entity
 
 export class UpdateWorkOrderDto {
   @ApiPropertyOptional({
-    description: 'Work order operational status',
+    description: 'Estado operativo de la orden de trabajo',
     enum: WorkOrderStatus,
     example: WorkOrderStatus.COMPLETED,
   })
@@ -13,7 +13,7 @@ export class UpdateWorkOrderDto {
   statusOperativo?: WorkOrderStatus;
 
   @ApiPropertyOptional({
-    description: 'Whether the work order has been invoiced',
+    description: 'Si la orden de trabajo ha sido facturada',
     example: true,
   })
   @IsOptional()
@@ -21,7 +21,7 @@ export class UpdateWorkOrderDto {
   isFacturado?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Whether the invoice has been paid/collected',
+    description: 'Si la factura ha sido cobrada',
     example: false,
   })
   @IsOptional()
@@ -29,7 +29,7 @@ export class UpdateWorkOrderDto {
   isCobrado?: boolean;
 
   @ApiPropertyOptional({
-    description: 'URL to the uploaded invoice in Firebase Storage',
+    description: 'URL de la factura subida en Firebase Storage',
     example: 'https://firebasestorage.googleapis.com/v0/b/eleven-db-facturas.appspot.com/...',
   })
   @IsOptional()
@@ -37,7 +37,7 @@ export class UpdateWorkOrderDto {
   invoiceUrl?: string;
 
   @ApiPropertyOptional({
-    description: 'File name of the invoice in Firebase Storage',
+    description: 'Nombre del archivo de la factura en Firebase Storage',
     example: 'invoices/cliente-edificio-2024-12.pdf',
   })
   @IsOptional()
@@ -45,15 +45,15 @@ export class UpdateWorkOrderDto {
   invoiceFileName?: string;
 
   @ApiPropertyOptional({
-    description: 'Additional observations or notes',
-    example: 'Equipment needed replacement - charged separately',
+    description: 'Observaciones o notas adicionales',
+    example: 'Se requirió reemplazo de equipos - cobrado por separado',
   })
   @IsOptional()
   @IsString()
   observations?: string;
 
   @ApiPropertyOptional({
-    description: 'Type of work order',
+    description: 'Tipo de orden de trabajo',
     enum: WorkOrderType,
     example: WorkOrderType.MANTENIMIENTO,
   })
@@ -62,7 +62,7 @@ export class UpdateWorkOrderDto {
   type?: WorkOrderType;
 
   @ApiPropertyOptional({
-    description: 'Price snapshot - can only be edited for non-maintenance work orders',
+    description: 'Precio snapshot - solo editable para órdenes que no son de mantenimiento',
     example: 45000,
   })
   @IsOptional()
@@ -71,7 +71,7 @@ export class UpdateWorkOrderDto {
   priceSnapshot?: number;
 
   @ApiPropertyOptional({
-    description: 'Actual execution date of the work (can be edited by user)',
+    description: 'Fecha real de ejecución del trabajo (puede ser editada por el usuario)',
     example: '2025-01-23T10:00:00.000Z',
   })
   @IsOptional()

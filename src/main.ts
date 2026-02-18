@@ -77,18 +77,19 @@ async function bootstrap() {
   // Swagger Documentation
   const config = new DocumentBuilder()
     .setTitle('ELEVEN API')
-    .setDescription('Elevator Maintenance SaaS - API Documentation')
+    .setDescription('Sistema SaaS de Mantenimiento de Ascensores - Documentación de API')
     .setVersion('1.0')
-    .addTag('auth', 'Authentication endpoints')
-    .addTag('clients', 'Client management endpoints')
-    .addTag('buildings', 'Building inventory endpoints')
-    .addTag('work-orders', 'Work orders and operations endpoints')
+    .addTag('auth', 'Endpoints de autenticación')
+    .addTag('clients', 'Gestión de clientes')
+    .addTag('buildings', 'Inventario de edificios')
+    .addTag('work-orders', 'Órdenes de trabajo y operaciones')
+    .addTag('qr-access', 'Acceso mediante código QR')
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
-    customSiteTitle: 'ELEVEN API Docs',
+    customSiteTitle: 'ELEVEN API - Documentación',
     customfavIcon: 'https://nestjs.com/img/logo-small.svg',
     customCss: '.swagger-ui .topbar { display: none }',
   });

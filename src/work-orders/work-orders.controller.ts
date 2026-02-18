@@ -36,18 +36,18 @@ export class WorkOrdersController {
   constructor(private readonly workOrdersService: WorkOrdersService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new work order' })
+  @ApiOperation({ summary: 'Crear una nueva orden de trabajo' })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Work order successfully created',
+    description: 'Orden de trabajo creada exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data',
+    description: 'Datos de entrada inválidos',
   })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
-    description: 'Work order already exists for this building/month/year',
+    description: 'Ya existe una orden de trabajo para este edificio/mes/año',
   })
   create(@Body() createWorkOrderDto: CreateWorkOrderDto) {
     return this.workOrdersService.create(createWorkOrderDto);
@@ -55,13 +55,13 @@ export class WorkOrdersController {
 
   @Post('generate-monthly')
   @ApiOperation({
-    summary: 'Generate work orders for all active buildings',
+    summary: 'Generar órdenes de trabajo para todos los edificios activos',
     description:
-      'Batch operation that creates work orders for all active buildings for a given month/year. Skips buildings that already have orders for that period.',
+      'Operación por lotes que crea órdenes de trabajo para todos los edificios activos de un mes/año dado. Omite edificios que ya tienen órdenes para ese período.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Work orders generation summary',
+    description: 'Resumen de generación de órdenes de trabajo',
     schema: {
       example: {
         created: 25,
@@ -72,7 +72,7 @@ export class WorkOrdersController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid month or year',
+    description: 'Mes o año inválido',
   })
   generateMonthlyOrders(@Body() dto: GenerateMonthlyOrdersDto) {
     return this.workOrdersService.generateMonthlyOrders(dto);
@@ -80,13 +80,13 @@ export class WorkOrdersController {
 
   @Post('bulk-update')
   @ApiOperation({
-    summary: 'Bulk update work orders by client and type',
+    summary: 'Actualización masiva de órdenes de trabajo por cliente y tipo',
     description:
-      'Updates isFacturado and/or isCobrado for all work orders matching the specified client and type',
+      'Actualiza isFacturado y/o isCobrado para todas las órdenes de trabajo que coincidan con el cliente y tipo especificados',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Bulk update summary',
+    description: 'Resumen de actualización masiva',
     schema: {
       example: {
         updated: 12,
@@ -95,36 +95,36 @@ export class WorkOrdersController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data',
+    description: 'Datos de entrada inválidos',
   })
   bulkUpdate(@Body() dto: BulkUpdateWorkOrdersDto) {
     return this.workOrdersService.bulkUpdate(dto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all work orders' })
+  @ApiOperation({ summary: 'Obtener todas las órdenes de trabajo' })
   @ApiQuery({
     name: 'month',
     required: false,
     type: Number,
-    description: 'Filter by month (1-12)',
+    description: 'Filtrar por mes (1-12)',
   })
   @ApiQuery({
     name: 'year',
     required: false,
     type: Number,
-    description: 'Filter by year',
+    description: 'Filtrar por año',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'List of work orders retrieved successfully',
+    description: 'Lista de órdenes de trabajo obtenida exitosamente',
   })
   findAll(@Query('month') month?: number, @Query('year') year?: number) {
     // Validate month
     if (month !== undefined) {
       const monthNum = Number(month);
       if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
-        throw new BadRequestException('Month must be between 1 and 12');
+        throw new BadRequestException('El mes debe estar entre 1 y 12');
       }
     }
 
@@ -132,7 +132,7 @@ export class WorkOrdersController {
     if (year !== undefined) {
       const yearNum = Number(year);
       if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
-        throw new BadRequestException('Year must be between 2020 and 2100');
+        throw new BadRequestException('El año debe estar entre 2020 y 2100');
       }
     }
 
@@ -144,25 +144,25 @@ export class WorkOrdersController {
 
   @Get('dashboard-kpis')
   @ApiOperation({
-    summary: 'Get dashboard KPIs for a specific month',
+    summary: 'Obtener KPIs del dashboard para un mes específico',
     description:
-      'Returns completion rates, revenue stats, and collection metrics for the specified period',
+      'Devuelve tasas de completado, estadísticas de facturación y métricas de cobro para el período especificado',
   })
   @ApiQuery({
     name: 'month',
     required: true,
     type: Number,
-    description: 'Month (1-12)',
+    description: 'Mes (1-12)',
   })
   @ApiQuery({
     name: 'year',
     required: true,
     type: Number,
-    description: 'Year',
+    description: 'Año',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'KPIs retrieved successfully',
+    description: 'KPIs obtenidos exitosamente',
     schema: {
       example: {
         month: 12,
@@ -188,28 +188,28 @@ export class WorkOrdersController {
     // Validate month
     const monthNum = Number(month);
     if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
-      throw new BadRequestException('Month must be between 1 and 12');
+      throw new BadRequestException('El mes debe estar entre 1 y 12');
     }
 
     // Validate year
     const yearNum = Number(year);
     if (isNaN(yearNum) || yearNum < 2020 || yearNum > 2100) {
-      throw new BadRequestException('Year must be between 2020 and 2100');
+      throw new BadRequestException('El año debe estar entre 2020 y 2100');
     }
 
     return this.workOrdersService.getDashboardKPIs(monthNum, yearNum);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a work order by ID' })
-  @ApiParam({ name: 'id', description: 'Work Order UUID' })
+  @ApiOperation({ summary: 'Obtener una orden de trabajo por ID' })
+  @ApiParam({ name: 'id', description: 'UUID de la orden de trabajo' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Work order found',
+    description: 'Orden de trabajo encontrada',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Work order not found',
+    description: 'Orden de trabajo no encontrada',
   })
   findOne(@Param('id') id: string) {
     return this.workOrdersService.findOne(id);
@@ -217,17 +217,17 @@ export class WorkOrdersController {
 
   @Get(':id/status-history')
   @ApiOperation({
-    summary: 'Get status change history for a work order',
-    description: 'Returns all status changes with timestamps for audit purposes',
+    summary: 'Obtener historial de cambios de estado de una orden de trabajo',
+    description: 'Devuelve todos los cambios de estado con marcas de tiempo para auditoría',
   })
-  @ApiParam({ name: 'id', description: 'Work Order UUID' })
+  @ApiParam({ name: 'id', description: 'UUID de la orden de trabajo' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Status history retrieved successfully',
+    description: 'Historial de estados obtenido exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Work order not found',
+    description: 'Orden de trabajo no encontrada',
   })
   getStatusHistory(@Param('id') id: string) {
     return this.workOrdersService.getStatusHistory(id);
@@ -235,18 +235,18 @@ export class WorkOrdersController {
 
   @Patch(':id')
   @ApiOperation({
-    summary: 'Update a work order',
+    summary: 'Actualizar una orden de trabajo',
     description:
-      'Updates work order status and automatically sets timestamps (completedAt, invoicedAt, paidAt)',
+      'Actualiza el estado de la orden de trabajo y establece automáticamente las marcas de tiempo (completedAt, invoicedAt, paidAt)',
   })
-  @ApiParam({ name: 'id', description: 'Work Order UUID' })
+  @ApiParam({ name: 'id', description: 'UUID de la orden de trabajo' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Work order successfully updated',
+    description: 'Orden de trabajo actualizada exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Work order not found',
+    description: 'Orden de trabajo no encontrada',
   })
   update(
     @Param('id') id: string,
@@ -256,15 +256,15 @@ export class WorkOrdersController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a work order' })
-  @ApiParam({ name: 'id', description: 'Work Order UUID' })
+  @ApiOperation({ summary: 'Eliminar una orden de trabajo' })
+  @ApiParam({ name: 'id', description: 'UUID de la orden de trabajo' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Work order successfully deleted',
+    description: 'Orden de trabajo eliminada exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Work order not found',
+    description: 'Orden de trabajo no encontrada',
   })
   remove(@Param('id') id: string) {
     return this.workOrdersService.remove(id);

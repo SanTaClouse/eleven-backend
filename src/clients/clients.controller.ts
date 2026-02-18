@@ -30,36 +30,36 @@ export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new client' })
+  @ApiOperation({ summary: 'Crear un nuevo cliente' })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Client successfully created',
+    description: 'Cliente creado exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data',
+    description: 'Datos de entrada inválidos',
   })
   create(@Body() createClientDto: CreateClientDto) {
     return this.clientsService.create(createClientDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all clients' })
+  @ApiOperation({ summary: 'Obtener todos los clientes' })
   @ApiQuery({
     name: 'month',
     required: false,
     type: Number,
-    description: 'Filter by month (1-12) to get revenue stats',
+    description: 'Filtrar por mes (1-12) para obtener estadísticas de facturación',
   })
   @ApiQuery({
     name: 'year',
     required: false,
     type: Number,
-    description: 'Filter by year to get revenue stats',
+    description: 'Filtrar por año para obtener estadísticas de facturación',
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'List of clients retrieved successfully',
+    description: 'Lista de clientes obtenida exitosamente',
   })
   findAll(
     @Query('month') month?: number,
@@ -72,69 +72,69 @@ export class ClientsController {
   }
 
   @Get(':id/deactivation-impact')
-  @ApiOperation({ summary: 'Get deactivation impact for a client' })
-  @ApiParam({ name: 'id', description: 'Client UUID' })
+  @ApiOperation({ summary: 'Obtener impacto de desactivación de un cliente' })
+  @ApiParam({ name: 'id', description: 'UUID del cliente' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Deactivation impact information retrieved',
+    description: 'Información del impacto de desactivación obtenida',
   })
   getDeactivationImpact(@Param('id') id: string) {
     return this.clientsService.getDeactivationImpact(id);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a client by ID' })
-  @ApiParam({ name: 'id', description: 'Client UUID' })
+  @ApiOperation({ summary: 'Obtener un cliente por ID' })
+  @ApiParam({ name: 'id', description: 'UUID del cliente' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Client found',
+    description: 'Cliente encontrado',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Client not found',
+    description: 'Cliente no encontrado',
   })
   findOne(@Param('id') id: string) {
     return this.clientsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a client' })
-  @ApiParam({ name: 'id', description: 'Client UUID' })
+  @ApiOperation({ summary: 'Actualizar un cliente' })
+  @ApiParam({ name: 'id', description: 'UUID del cliente' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Client successfully updated',
+    description: 'Cliente actualizado exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Client not found',
+    description: 'Cliente no encontrado',
   })
   update(@Param('id') id: string, @Body() updateClientDto: UpdateClientDto) {
     return this.clientsService.update(id, updateClientDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Deactivate a client (soft delete)' })
-  @ApiParam({ name: 'id', description: 'Client UUID' })
+  @ApiOperation({ summary: 'Desactivar un cliente (borrado lógico)' })
+  @ApiParam({ name: 'id', description: 'UUID del cliente' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Client successfully deactivated',
+    description: 'Cliente desactivado exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Client not found',
+    description: 'Cliente no encontrado',
   })
   remove(@Param('id') id: string) {
     return this.clientsService.remove(id);
   }
 
   @Post('update-rankings')
-  @ApiOperation({ summary: 'Update client rankings based on revenue' })
+  @ApiOperation({ summary: 'Actualizar rankings de clientes basado en facturación' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Client rankings updated successfully',
+    description: 'Rankings de clientes actualizados exitosamente',
   })
   async updateRankings() {
     await this.clientsService.updateClientRankings();
-    return { message: 'Client rankings updated successfully' };
+    return { message: 'Rankings de clientes actualizados exitosamente' };
   }
 }

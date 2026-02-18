@@ -11,7 +11,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBuildingDto {
   @ApiProperty({
-    description: 'Building name',
+    description: 'Nombre del edificio',
     example: 'CAM2',
     maxLength: 150,
   })
@@ -21,8 +21,8 @@ export class CreateBuildingDto {
   name: string;
 
   @ApiProperty({
-    description: 'Building address',
-    example: '456 Oak Avenue, Building 5, Floor 12',
+    description: 'Dirección del edificio',
+    example: 'Av. Corrientes 1234, Piso 5',
     maxLength: 255,
   })
   @IsString()
@@ -30,7 +30,7 @@ export class CreateBuildingDto {
   address: string;
 
   @ApiProperty({
-    description: 'Monthly maintenance price',
+    description: 'Precio mensual de mantenimiento',
     example: 1500.50,
     minimum: 0,
   })
@@ -39,7 +39,7 @@ export class CreateBuildingDto {
   price: number;
 
   @ApiProperty({
-    description: 'Number of stops (paradas) in the building',
+    description: 'Número de paradas del edificio',
     example: 12,
     minimum: 0,
   })
@@ -48,7 +48,7 @@ export class CreateBuildingDto {
   stops: number;
 
   @ApiProperty({
-    description: 'Number of elevators in the building',
+    description: 'Cantidad de ascensores en el edificio',
     example: 2,
     minimum: 0,
   })
@@ -57,7 +57,7 @@ export class CreateBuildingDto {
   elevatorsCount: number;
 
   @ApiPropertyOptional({
-    description: 'Number of car lifts (montacoches)',
+    description: 'Cantidad de montacoches',
     example: 1,
     minimum: 0,
   })
@@ -67,7 +67,7 @@ export class CreateBuildingDto {
   carLifts?: number;
 
   @ApiPropertyOptional({
-    description: 'Number of gates (portones)',
+    description: 'Cantidad de portones',
     example: 2,
     minimum: 0,
   })
@@ -77,15 +77,15 @@ export class CreateBuildingDto {
   gates?: number;
 
   @ApiPropertyOptional({
-    description: 'Additional notes or observations',
-    example: 'Building requires special access on weekends',
+    description: 'Notas u observaciones adicionales',
+    example: 'El edificio requiere acceso especial los fines de semana',
   })
   @IsOptional()
   @IsString()
   notes?: string;
 
   @ApiPropertyOptional({
-    description: 'Whether the client is active',
+    description: 'Si el edificio está activo',
     example: true,
     default: true,
   })
@@ -94,7 +94,7 @@ export class CreateBuildingDto {
   isActive?: boolean;
 
   @ApiProperty({
-    description: 'Client UUID that owns this building',
+    description: 'UUID del cliente propietario de este edificio',
     example: '123e4567-e89b-12d3-a456-426614174000',
     format: 'uuid',
   })

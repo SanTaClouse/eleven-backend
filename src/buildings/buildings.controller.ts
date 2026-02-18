@@ -31,71 +31,71 @@ export class BuildingsController {
   constructor(private readonly buildingsService: BuildingsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new building' })
+  @ApiOperation({ summary: 'Crear un nuevo edificio' })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Building successfully created',
+    description: 'Edificio creado exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data',
+    description: 'Datos de entrada inválidos',
   })
   create(@Body() createBuildingDto: CreateBuildingDto) {
     return this.buildingsService.create(createBuildingDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all buildings' })
+  @ApiOperation({ summary: 'Obtener todos los edificios' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'List of buildings retrieved successfully',
+    description: 'Lista de edificios obtenida exitosamente',
   })
   findAll() {
     return this.buildingsService.findAll();
   }
 
   @Get('active')
-  @ApiOperation({ summary: 'Get all active buildings' })
+  @ApiOperation({ summary: 'Obtener todos los edificios activos' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'List of active buildings retrieved successfully',
+    description: 'Lista de edificios activos obtenida exitosamente',
   })
   findAllActive() {
     return this.buildingsService.findAllActive();
   }
 
   @Get(':id/deactivation-impact')
-  @ApiOperation({ summary: 'Get deactivation impact for a building' })
-  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiOperation({ summary: 'Obtener impacto de desactivación de un edificio' })
+  @ApiParam({ name: 'id', description: 'UUID del edificio' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Deactivation impact information retrieved',
+    description: 'Información del impacto de desactivación obtenida',
   })
   getDeactivationImpact(@Param('id') id: string) {
     return this.buildingsService.getDeactivationImpact(id);
   }
 
   @Get(':id/price-history')
-  @ApiOperation({ summary: 'Get price history for a building' })
-  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiOperation({ summary: 'Obtener historial de precios de un edificio' })
+  @ApiParam({ name: 'id', description: 'UUID del edificio' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Price history retrieved successfully',
+    description: 'Historial de precios obtenido exitosamente',
   })
   getPriceHistory(@Param('id') id: string) {
     return this.buildingsService.getPriceHistory(id);
   }
 
   @Get(':id/qr-code')
-  @ApiOperation({ summary: 'Generate QR code image for building portal' })
-  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiOperation({ summary: 'Generar imagen de código QR para el portal del edificio' })
+  @ApiParam({ name: 'id', description: 'UUID del edificio' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'QR code image (PNG)',
+    description: 'Imagen del código QR (PNG)',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Building not found',
+    description: 'Edificio no encontrado',
   })
   @Header('Content-Type', 'image/png')
   async getQrCode(@Param('id') id: string, @Res() res: Response) {
@@ -108,41 +108,41 @@ export class BuildingsController {
   }
 
   @Get(':id/qr-url')
-  @ApiOperation({ summary: 'Get QR portal URL for a building' })
-  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiOperation({ summary: 'Obtener URL del portal QR de un edificio' })
+  @ApiParam({ name: 'id', description: 'UUID del edificio' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'QR portal URL',
+    description: 'URL del portal QR',
   })
   getQrUrl(@Param('id') id: string) {
     return { url: this.buildingsService.getQrUrl(id) };
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a building by ID' })
-  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiOperation({ summary: 'Obtener un edificio por ID' })
+  @ApiParam({ name: 'id', description: 'UUID del edificio' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Building found',
+    description: 'Edificio encontrado',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Building not found',
+    description: 'Edificio no encontrado',
   })
   findOne(@Param('id') id: string) {
     return this.buildingsService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a building' })
-  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiOperation({ summary: 'Actualizar un edificio' })
+  @ApiParam({ name: 'id', description: 'UUID del edificio' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Building successfully updated',
+    description: 'Edificio actualizado exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Building not found',
+    description: 'Edificio no encontrado',
   })
   update(
     @Param('id') id: string,
@@ -152,15 +152,15 @@ export class BuildingsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Deactivate a building (soft delete)' })
-  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiOperation({ summary: 'Desactivar un edificio (borrado lógico)' })
+  @ApiParam({ name: 'id', description: 'UUID del edificio' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Building successfully deactivated',
+    description: 'Edificio desactivado exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Building not found',
+    description: 'Edificio no encontrado',
   })
   remove(@Param('id') id: string) {
     return this.buildingsService.remove(id);

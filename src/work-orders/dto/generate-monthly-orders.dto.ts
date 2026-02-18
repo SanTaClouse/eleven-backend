@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class GenerateMonthlyOrdersDto {
   @ApiProperty({
-    description: 'Month to generate work orders for (1-12)',
+    description: 'Mes para generar órdenes de trabajo (1-12)',
     example: 12,
     minimum: 1,
     maximum: 12,
@@ -14,7 +14,7 @@ export class GenerateMonthlyOrdersDto {
   month: number;
 
   @ApiProperty({
-    description: 'Year to generate work orders for',
+    description: 'Año para generar órdenes de trabajo',
     example: 2024,
     minimum: 2020,
   })

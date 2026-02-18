@@ -4,7 +4,7 @@ import { WorkOrderType } from '../../entities/work-order.entity';
 
 export class BulkUpdateWorkOrdersDto {
   @ApiProperty({
-    description: 'Client ID to filter work orders',
+    description: 'ID del cliente para filtrar órdenes de trabajo',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsUUID()
@@ -12,7 +12,7 @@ export class BulkUpdateWorkOrdersDto {
   clientId: string;
 
   @ApiProperty({
-    description: 'Work order type to filter',
+    description: 'Tipo de orden de trabajo para filtrar',
     enum: WorkOrderType,
     example: WorkOrderType.MANTENIMIENTO,
   })
@@ -21,7 +21,7 @@ export class BulkUpdateWorkOrdersDto {
   type: WorkOrderType;
 
   @ApiProperty({
-    description: 'Month to filter work orders (1-12)',
+    description: 'Mes para filtrar órdenes de trabajo (1-12)',
     example: 12,
   })
   @IsInt()
@@ -31,7 +31,7 @@ export class BulkUpdateWorkOrdersDto {
   month: number;
 
   @ApiProperty({
-    description: 'Year to filter work orders',
+    description: 'Año para filtrar órdenes de trabajo',
     example: 2024,
   })
   @IsInt()
@@ -40,7 +40,7 @@ export class BulkUpdateWorkOrdersDto {
   year: number;
 
   @ApiProperty({
-    description: 'Set isFacturado to this value for matching orders',
+    description: 'Establecer isFacturado a este valor para las órdenes coincidentes',
     example: true,
     required: false,
   })
@@ -48,7 +48,7 @@ export class BulkUpdateWorkOrdersDto {
   isFacturado?: boolean;
 
   @ApiProperty({
-    description: 'Set isCobrado to this value for matching orders',
+    description: 'Establecer isCobrado a este valor para las órdenes coincidentes',
     example: true,
     required: false,
   })

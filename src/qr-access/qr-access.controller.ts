@@ -29,35 +29,35 @@ export class QrAccessController {
   constructor(private readonly qrAccessService: QrAccessService) {}
 
   @Get(':buildingId')
-  @ApiOperation({ summary: 'Get building portal info for QR access' })
-  @ApiParam({ name: 'buildingId', description: 'Building UUID' })
+  @ApiOperation({ summary: 'Obtener información del portal del edificio para acceso QR' })
+  @ApiParam({ name: 'buildingId', description: 'UUID del edificio' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Building info and current work orders',
+    description: 'Información del edificio y órdenes de trabajo actuales',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Building not found',
+    description: 'Edificio no encontrado',
   })
   getBuildingPortal(@Param('buildingId') buildingId: string) {
     return this.qrAccessService.getBuildingPortal(buildingId);
   }
 
   @Post(':buildingId/work-orders/:orderId/start')
-  @ApiOperation({ summary: 'Start a work order' })
-  @ApiParam({ name: 'buildingId', description: 'Building UUID' })
-  @ApiParam({ name: 'orderId', description: 'Work Order UUID' })
+  @ApiOperation({ summary: 'Iniciar una orden de trabajo' })
+  @ApiParam({ name: 'buildingId', description: 'UUID del edificio' })
+  @ApiParam({ name: 'orderId', description: 'UUID de la orden de trabajo' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Work order started successfully',
+    description: 'Orden de trabajo iniciada exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Work order not found',
+    description: 'Orden de trabajo no encontrada',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Work order cannot be started',
+    description: 'La orden de trabajo no puede ser iniciada',
   })
   startWorkOrder(
     @Param('buildingId') buildingId: string,
@@ -68,20 +68,20 @@ export class QrAccessController {
   }
 
   @Post(':buildingId/work-orders/:orderId/complete')
-  @ApiOperation({ summary: 'Complete a work order' })
-  @ApiParam({ name: 'buildingId', description: 'Building UUID' })
-  @ApiParam({ name: 'orderId', description: 'Work Order UUID' })
+  @ApiOperation({ summary: 'Completar una orden de trabajo' })
+  @ApiParam({ name: 'buildingId', description: 'UUID del edificio' })
+  @ApiParam({ name: 'orderId', description: 'UUID de la orden de trabajo' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Work order completed successfully',
+    description: 'Orden de trabajo completada exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Work order not found',
+    description: 'Orden de trabajo no encontrada',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Work order cannot be completed',
+    description: 'La orden de trabajo no puede ser completada',
   })
   completeWorkOrder(
     @Param('buildingId') buildingId: string,
@@ -98,13 +98,13 @@ export class QrAccessController {
   }
 
   @Get(':buildingId/history')
-  @ApiOperation({ summary: 'Get work order history for a building' })
-  @ApiParam({ name: 'buildingId', description: 'Building UUID' })
-  @ApiQuery({ name: 'limit', required: false, description: 'Number of items to return' })
-  @ApiQuery({ name: 'offset', required: false, description: 'Number of items to skip' })
+  @ApiOperation({ summary: 'Obtener historial de órdenes de trabajo de un edificio' })
+  @ApiParam({ name: 'buildingId', description: 'UUID del edificio' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Número de elementos a devolver' })
+  @ApiQuery({ name: 'offset', required: false, description: 'Número de elementos a omitir' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Work order history',
+    description: 'Historial de órdenes de trabajo',
   })
   getHistory(
     @Param('buildingId') buildingId: string,

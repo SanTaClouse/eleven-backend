@@ -3,8 +3,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateClientDto {
   @ApiProperty({
-    description: 'Client company or person name',
-    example: 'Acme Corporation',
+    description: 'Nombre de la empresa o persona',
+    example: 'Consorcio Los Pinos',
     maxLength: 255,
   })
   @IsString()
@@ -12,8 +12,8 @@ export class CreateClientDto {
   name: string;
 
   @ApiPropertyOptional({
-    description: 'Contact phone number',
-    example: '+1234567890',
+    description: 'Número de teléfono de contacto',
+    example: '+54 11 1234-5678',
     maxLength: 100,
   })
   @IsOptional()
@@ -22,8 +22,8 @@ export class CreateClientDto {
   phone?: string;
 
   @ApiPropertyOptional({
-    description: 'Contact email address',
-    example: 'contact@acmecorp.com',
+    description: 'Correo electrónico de contacto',
+    example: 'contacto@consorcio.com',
     maxLength: 255,
   })
   @IsOptional()
@@ -32,15 +32,15 @@ export class CreateClientDto {
   email?: string;
 
   @ApiPropertyOptional({
-    description: 'Client physical address',
-    example: '123 Main St, New York, NY 10001',
+    description: 'Dirección física del cliente',
+    example: 'Av. Rivadavia 1234, CABA',
   })
   @IsOptional()
   @IsString()
   address?: string;
 
   @ApiPropertyOptional({
-    description: 'Tax identification number (CUIT/RUC/Tax ID)',
+    description: 'Número de identificación fiscal (CUIT)',
     example: '20-12345678-9',
     maxLength: 50,
   })
@@ -50,7 +50,7 @@ export class CreateClientDto {
   taxId?: string;
 
   @ApiPropertyOptional({
-    description: 'Whether the client is active',
+    description: 'Si el cliente está activo',
     example: true,
     default: true,
   })
