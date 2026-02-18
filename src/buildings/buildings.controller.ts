@@ -8,7 +8,10 @@ import {
   Delete,
   HttpStatus,
   UseGuards,
+  Res,
+  Header,
 } from '@nestjs/common';
+import { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -81,6 +84,38 @@ export class BuildingsController {
   })
   getPriceHistory(@Param('id') id: string) {
     return this.buildingsService.getPriceHistory(id);
+  }
+
+  @Get(':id/qr-code')
+  @ApiOperation({ summary: 'Generate QR code image for building portal' })
+  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'QR code image (PNG)',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Building not found',
+  })
+  @Header('Content-Type', 'image/png')
+  async getQrCode(@Param('id') id: string, @Res() res: Response) {
+    const qrBuffer = await this.buildingsService.generateQrCode(id);
+    res.set({
+      'Content-Disposition': `attachment; filename="qr-edificio-${id}.png"`,
+      'Cache-Control': 'no-cache',
+    });
+    res.send(qrBuffer);
+  }
+
+  @Get(':id/qr-url')
+  @ApiOperation({ summary: 'Get QR portal URL for a building' })
+  @ApiParam({ name: 'id', description: 'Building UUID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'QR portal URL',
+  })
+  getQrUrl(@Param('id') id: string) {
+    return { url: this.buildingsService.getQrUrl(id) };
   }
 
   @Get(':id')

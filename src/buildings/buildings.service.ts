@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, Inject, forwardRef, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository, Not } from 'typeorm';
+import * as QRCode from 'qrcode';
 import { Building } from '../entities/building.entity';
 import { BuildingPriceHistory } from '../entities/building-price-history.entity';
 import { CreateBuildingDto, UpdateBuildingDto } from './dto';
@@ -15,6 +17,7 @@ export class BuildingsService {
     private readonly priceHistoryRepository: Repository<BuildingPriceHistory>,
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
+    private readonly configService: ConfigService,
   ) { }
 
   async create(createBuildingDto: CreateBuildingDto): Promise<Building> {
@@ -180,5 +183,39 @@ export class BuildingsService {
       where: { buildingId: id },
       order: { changedAt: 'DESC' },
     });
+  }
+
+  /**
+   * Genera un código QR para el portal del edificio
+   * Retorna la imagen en formato PNG como Buffer
+   */
+  async generateQrCode(id: string): Promise<Buffer> {
+    const building = await this.findOne(id);
+
+    // Obtener la URL base del frontend desde las variables de entorno
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const qrUrl = `${frontendUrl}/qr/${building.id}`;
+
+    // Generar QR como Buffer PNG
+    const qrBuffer = await QRCode.toBuffer(qrUrl, {
+      type: 'png',
+      width: 400,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF',
+      },
+      errorCorrectionLevel: 'M',
+    });
+
+    return qrBuffer;
+  }
+
+  /**
+   * Obtiene la URL del portal QR para un edificio
+   */
+  getQrUrl(id: string): string {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    return `${frontendUrl}/qr/${id}`;
   }
 }

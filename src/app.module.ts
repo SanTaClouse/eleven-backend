@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ClientsModule } from './clients/clients.module';
 import { BuildingsModule } from './buildings/buildings.module';
 import { WorkOrdersModule } from './work-orders/work-orders.module';
+import { QrAccessModule } from './qr-access/qr-access.module';
 import { SeedController } from './seed.controller';
 
 @Module({
@@ -27,6 +28,7 @@ import { SeedController } from './seed.controller';
     ClientsModule,
     BuildingsModule,
     WorkOrdersModule,
+    QrAccessModule,
   ],
   controllers: [SeedController],
   providers: [
