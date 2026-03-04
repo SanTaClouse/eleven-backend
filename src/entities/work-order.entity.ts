@@ -93,6 +93,22 @@ export class WorkOrder {
   @Column({ type: 'timestamp', nullable: true })
   paidAt: Date; // Fecha en que se marcó como cobrado
 
+  // Campos ARCA (facturación electrónica)
+  @Column({ type: 'varchar', length: 14, nullable: true })
+  cae: string; // Código de Autorización Electrónica (14 dígitos)
+
+  @Column({ type: 'date', nullable: true })
+  caeVencimiento: Date; // Fecha de vencimiento del CAE
+
+  @Column({ type: 'int', nullable: true })
+  comprobanteNro: number; // Número de comprobante ARCA
+
+  @Column({ type: 'int', nullable: true })
+  tipoComprobante: number; // Tipo de comprobante ARCA (11 = Factura C)
+
+  @Column({ type: 'text', nullable: true })
+  arcaError: string; // Mensaje de error si la emisión ARCA falló
+
   @CreateDateColumn()
   createdAt: Date;
 

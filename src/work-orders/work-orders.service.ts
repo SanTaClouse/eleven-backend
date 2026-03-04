@@ -4,6 +4,7 @@ import {
   ConflictException,
   Inject,
   forwardRef,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,6 +12,7 @@ import { WorkOrder, WorkOrderStatus, WorkOrderType } from '../entities/work-orde
 import { WorkOrderStatusHistory } from '../entities/work-order-status-history.entity';
 import { BuildingsService } from '../buildings/buildings.service';
 import { ClientsService } from '../clients/clients.service';
+import { ArcaService } from '../arca/arca.service';
 import {
   CreateWorkOrderDto,
   UpdateWorkOrderDto,
@@ -20,6 +22,8 @@ import {
 
 @Injectable()
 export class WorkOrdersService {
+  private readonly logger = new Logger(WorkOrdersService.name);
+
   constructor(
     @InjectRepository(WorkOrder)
     private readonly workOrderRepository: Repository<WorkOrder>,
@@ -28,6 +32,8 @@ export class WorkOrdersService {
     private readonly buildingsService: BuildingsService,
     @Inject(forwardRef(() => ClientsService))
     private readonly clientsService: ClientsService,
+    @Inject(forwardRef(() => ArcaService))
+    private readonly arcaService: ArcaService,
   ) { }
 
   async create(createWorkOrderDto: CreateWorkOrderDto): Promise<WorkOrder> {
@@ -121,7 +127,33 @@ export class WorkOrdersService {
       await this.statusHistoryRepository.save(historyEntry);
     }
 
-    if (updateWorkOrderDto.isFacturado && !workOrder.invoicedAt) {
+    // Detectar si se está facturando por primera vez
+    const facturandoPorPrimeraVez = updateWorkOrderDto.isFacturado && !workOrder.isFacturado;
+
+    if (facturandoPorPrimeraVez) {
+      workOrder.invoicedAt = new Date();
+
+      // Auto-emitir factura ARCA (sincrónico para devolver el CAE en la respuesta)
+      try {
+        const woConRelaciones = needsRelations
+          ? workOrder
+          : await this.findOne(id);
+
+        const arcaResult = await this.arcaService.emitirFactura(woConRelaciones);
+        workOrder.cae = arcaResult.cae;
+        workOrder.caeVencimiento = arcaResult.caeVencimiento;
+        workOrder.comprobanteNro = arcaResult.comprobanteNro;
+        workOrder.tipoComprobante = arcaResult.tipoComprobante;
+        workOrder.invoiceUrl = arcaResult.invoiceUrl;
+        workOrder.invoiceFileName = arcaResult.invoiceFileName;
+        workOrder.invoiceUploadedAt = new Date();
+        workOrder.arcaError = null;
+      } catch (error) {
+        // Si ARCA falla, NO abortar: registrar el error y dejar la orden como facturada sin CAE
+        workOrder.arcaError = error.message;
+        this.logger.warn(`ARCA emission failed for work order ${id}: ${error.message}`);
+      }
+    } else if (updateWorkOrderDto.isFacturado && !workOrder.invoicedAt) {
       workOrder.invoicedAt = new Date();
     }
 

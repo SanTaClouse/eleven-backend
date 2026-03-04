@@ -4,6 +4,7 @@ import { WorkOrder } from '../entities/work-order.entity';
 import { WorkOrderStatusHistory } from '../entities/work-order-status-history.entity';
 import { BuildingsModule } from '../buildings/buildings.module';
 import { ClientsModule } from '../clients/clients.module';
+import { ArcaModule } from '../arca/arca.module';
 import { WorkOrdersController } from './work-orders.controller';
 import { WorkOrdersService } from './work-orders.service';
 
@@ -12,6 +13,7 @@ import { WorkOrdersService } from './work-orders.service';
     TypeOrmModule.forFeature([WorkOrder, WorkOrderStatusHistory]),
     BuildingsModule,
     forwardRef(() => ClientsModule),
+    forwardRef(() => ArcaModule),
   ],
   controllers: [WorkOrdersController],
   providers: [WorkOrdersService],
