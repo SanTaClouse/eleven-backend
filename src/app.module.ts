@@ -9,6 +9,8 @@ import { ClientsModule } from './clients/clients.module';
 import { BuildingsModule } from './buildings/buildings.module';
 import { WorkOrdersModule } from './work-orders/work-orders.module';
 import { QrAccessModule } from './qr-access/qr-access.module';
+import { ArcaModule } from './arca/arca.module';
+import { FailuresModule } from './failures/failures.module';
 import { SeedController } from './seed.controller';
 
 @Module({
@@ -29,6 +31,8 @@ import { SeedController } from './seed.controller';
     BuildingsModule,
     WorkOrdersModule,
     QrAccessModule,
+    ArcaModule,
+    FailuresModule,
   ],
   controllers: [SeedController],
   providers: [

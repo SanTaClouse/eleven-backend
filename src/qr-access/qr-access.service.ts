@@ -9,6 +9,7 @@ import { Repository, In } from 'typeorm';
 import { WorkOrder, WorkOrderStatus } from '../entities/work-order.entity';
 import { WorkOrderStatusHistory } from '../entities/work-order-status-history.entity';
 import { Building } from '../entities/building.entity';
+import { Failure } from '../entities/failure.entity';
 import { CompleteWorkOrderDto } from './dto';
 
 @Injectable()
@@ -20,6 +21,8 @@ export class QrAccessService {
     private readonly statusHistoryRepository: Repository<WorkOrderStatusHistory>,
     @InjectRepository(Building)
     private readonly buildingRepository: Repository<Building>,
+    @InjectRepository(Failure)
+    private readonly failureRepository: Repository<Failure>,
   ) {}
 
   /**
@@ -163,7 +166,7 @@ export class QrAccessService {
   }
 
   /**
-   * Get work order history for a building
+   * Get combined history (work orders + failures) for a building
    */
   async getHistory(buildingId: string, limit = 20, offset = 0) {
     const building = await this.buildingRepository.findOne({
@@ -181,11 +184,29 @@ export class QrAccessService {
       skip: offset,
     });
 
+    const failures = await this.failureRepository.find({
+      where: { buildingId },
+      order: { reportedAt: 'DESC' },
+      relations: ['reportedByUser'],
+    });
+
     return {
       buildingName: building.name || building.address,
       items: workOrders.map((wo) => this.mapHistoryItem(wo)),
+      failures: failures.map((f) => this.mapFailureItem(f)),
       total,
       hasMore: offset + workOrders.length < total,
+    };
+  }
+
+  private mapFailureItem(f: Failure) {
+    return {
+      id: f.id,
+      description: f.description,
+      reporterName: f.reporterName,
+      reportedByUserName: f.reportedByUser?.name || null,
+      source: f.source,
+      reportedAt: f.reportedAt,
     };
   }
 

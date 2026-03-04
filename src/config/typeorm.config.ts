@@ -6,15 +6,18 @@ import { Building } from '../entities/building.entity';
 import { WorkOrder } from '../entities/work-order.entity';
 import { WorkOrderStatusHistory } from '../entities/work-order-status-history.entity';
 import { BuildingPriceHistory } from '../entities/building-price-history.entity';
+import { Failure } from '../entities/failure.entity';
 
 config();
+
+const allEntities = [User, Client, Building, WorkOrder, WorkOrderStatusHistory, BuildingPriceHistory, Failure];
 
 export const typeOrmConfig: DataSourceOptions = process.env.DATABASE_URL
   ? {
     // Production: Use DATABASE_URL from Railway/Render/etc
     type: 'postgres',
     url: process.env.DATABASE_URL,
-    entities: [User, Client, Building, WorkOrder, WorkOrderStatusHistory, BuildingPriceHistory],
+    entities: allEntities,
     migrations: ['dist/migrations/*.js'],
     synchronize: false, // NEVER use synchronize in production - use migrations
     logging: process.env.NODE_ENV === 'development',
@@ -29,7 +32,7 @@ export const typeOrmConfig: DataSourceOptions = process.env.DATABASE_URL
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_DATABASE || 'eleven_db',
-    entities: [User, Client, Building, WorkOrder, WorkOrderStatusHistory, BuildingPriceHistory],
+    entities: allEntities,
     migrations: ['dist/migrations/*.js'],
     synchronize: false, // Use migrations instead of auto-sync to avoid schema conflicts
     logging: true,
