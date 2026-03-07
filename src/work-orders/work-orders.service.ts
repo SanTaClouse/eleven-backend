@@ -236,13 +236,18 @@ export class WorkOrdersService {
           continue;
         }
 
-        // Create work order with current building price and type MANTENIMIENTO
+        // priceSnapshot = precio unitario × cantidad total de equipos del edificio
+        const equipmentCount =
+          building.elevatorsCount +
+          (building.carLifts || 0) +
+          (building.gates || 0);
+
         const workOrder = this.workOrderRepository.create({
           buildingId: building.id,
           month,
           year,
           type: WorkOrderType.MANTENIMIENTO,
-          priceSnapshot: building.price,
+          priceSnapshot: building.unitPrice * equipmentCount,
           statusOperativo: WorkOrderStatus.PENDING,
           isFacturado: false,
           isCobrado: false,

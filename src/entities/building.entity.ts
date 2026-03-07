@@ -23,8 +23,8 @@ export class Building {
   @Column({ type: 'varchar', length: 255 })
   address: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number; // Precio del abono mensual actual
+  @Column({ name: 'unit_price', type: 'decimal', precision: 10, scale: 2 })
+  unitPrice: number; // Precio unitario por equipo (ascensor, montacoches o portón)
 
   @Column({ type: 'int' })
   stops: number; // Cantidad de paradas (anteriormente floorsCount)

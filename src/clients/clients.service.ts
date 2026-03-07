@@ -209,12 +209,19 @@ export class ClientsService {
    * El cliente con mayor ingreso mensual potencial obtiene el ranking #1
    */
   async updateClientRankings(): Promise<void> {
-    // Obtener todos los clientes con la suma de precios de sus edificios
+    // Solo edificios activos con mantenimiento activo. El abono mensual es unitPrice × cantidad de equipos.
     const clients = await this.clientRepository
       .createQueryBuilder('client')
-      .leftJoin('client.buildings', 'building')
+      .leftJoin(
+        'client.buildings',
+        'building',
+        'building.maintenanceActive = true AND building.isActive = true',
+      )
       .select('client.id', 'id')
-      .addSelect('COALESCE(SUM(building.price), 0)', 'totalRevenue')
+      .addSelect(
+        'COALESCE(SUM(building.unitPrice * (building.elevatorsCount + COALESCE(building.carLifts, 0) + COALESCE(building.gates, 0))), 0)',
+        'totalRevenue',
+      )
       .groupBy('client.id')
       .orderBy('"totalRevenue"', 'DESC')
       .getRawMany();

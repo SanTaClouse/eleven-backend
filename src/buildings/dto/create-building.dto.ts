@@ -30,13 +30,13 @@ export class CreateBuildingDto {
   address: string;
 
   @ApiProperty({
-    description: 'Precio mensual de mantenimiento',
-    example: 1500.50,
+    description: 'Precio unitario por equipo (ascensor, montacoches o portón)',
+    example: 69615,
     minimum: 0,
   })
   @IsNumber()
   @Min(0)
-  price: number;
+  unitPrice: number;
 
   @ApiProperty({
     description: 'Número de paradas del edificio',

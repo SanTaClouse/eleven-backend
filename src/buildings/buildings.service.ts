@@ -35,12 +35,12 @@ export class BuildingsService {
     const building = this.buildingRepository.create(createBuildingDto);
     const savedBuilding = await this.buildingRepository.save(building);
 
-    // Registrar precio inicial en el historial
-    if (savedBuilding.price > 0) {
+    // Registrar precio unitario inicial en el historial
+    if (savedBuilding.unitPrice > 0) {
       await this.priceHistoryRepository.save({
         buildingId: savedBuilding.id,
         oldPrice: null,
-        newPrice: savedBuilding.price,
+        newPrice: savedBuilding.unitPrice,
         reason: 'Precio inicial',
       });
     }
@@ -116,13 +116,13 @@ export class BuildingsService {
       }
     }
 
-    // Registrar cambio de precio en el historial
-    if (updateBuildingDto.price !== undefined && updateBuildingDto.price !== building.price) {
+    // Registrar cambio de precio unitario en el historial
+    if (updateBuildingDto.unitPrice !== undefined && updateBuildingDto.unitPrice !== building.unitPrice) {
       await this.priceHistoryRepository.save({
         buildingId: building.id,
-        oldPrice: building.price,
-        newPrice: updateBuildingDto.price,
-        reason: updateBuildingDto.price > building.price ? 'Aumento de precio' : 'Reducción de precio',
+        oldPrice: building.unitPrice,
+        newPrice: updateBuildingDto.unitPrice,
+        reason: updateBuildingDto.unitPrice > building.unitPrice ? 'Aumento de precio' : 'Reducción de precio',
       });
     }
 
