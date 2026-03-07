@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException, Inject, forwardRef, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Repository, Not } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as QRCode from 'qrcode';
 import { Building } from '../entities/building.entity';
 import { BuildingPriceHistory } from '../entities/building-price-history.entity';
@@ -21,16 +21,6 @@ export class BuildingsService {
   ) { }
 
   async create(createBuildingDto: CreateBuildingDto): Promise<Building> {
-    // Validar que no exista un edificio con la misma dirección
-    const existingBuilding = await this.buildingRepository.findOne({
-      where: { address: createBuildingDto.address },
-    });
-
-    if (existingBuilding) {
-      throw new ConflictException(
-        `Ya existe un edificio con la dirección: ${createBuildingDto.address}`,
-      );
-    }
 
     const building = this.buildingRepository.create(createBuildingDto);
     const savedBuilding = await this.buildingRepository.save(building);
@@ -103,18 +93,6 @@ export class BuildingsService {
       throw new NotFoundException(`Building with ID ${id} not found`);
     }
 
-    // Si se está actualizando la dirección, validar que no exista otro edificio con esa dirección
-    if (updateBuildingDto.address && updateBuildingDto.address !== building.address) {
-      const existingBuilding = await this.buildingRepository.findOne({
-        where: { address: updateBuildingDto.address, id: Not(id) },
-      });
-
-      if (existingBuilding) {
-        throw new ConflictException(
-          `Ya existe otro edificio con la dirección: ${updateBuildingDto.address}`,
-        );
-      }
-    }
 
     // Registrar cambio de precio unitario en el historial
     if (updateBuildingDto.unitPrice !== undefined && updateBuildingDto.unitPrice !== building.unitPrice) {
